@@ -1,16 +1,23 @@
+import { unstable_noStore } from "next/cache";
 import { prisma } from "@/lib/db";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const volunteers = await prisma.volunteer.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+  unstable_noStore();
 
-  const contacts = await prisma.contact.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+  let volunteers: Awaited<ReturnType<typeof prisma.volunteer.findMany>> = [];
+  let contacts: Awaited<ReturnType<typeof prisma.contact.findMany>> = [];
+
+  try {
+    [volunteers, contacts] = await Promise.all([
+      prisma.volunteer.findMany({ orderBy: { createdAt: "desc" } }),
+      prisma.contact.findMany({ orderBy: { createdAt: "desc" } }),
+    ]);
+  } catch (err) {
+    console.error("Admin dashboard DB error:", err);
+  }
 
   return (
     <div className="p-10 bg-gray-50 min-h-screen">
