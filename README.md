@@ -117,3 +117,4 @@ Access at `/admin` (redirects to `/admin/login`). Use the value of `ADMIN_PASSWO
 3. Run `npm run start` or deploy to Node hosting
 
 For MySQL (e.g. Hostinger), use: `mysql://username:password@hostname:3306/database_name`
+# otocampaign-website
