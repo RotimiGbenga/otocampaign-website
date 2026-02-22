@@ -38,8 +38,9 @@ cp .env.example .env
 
 Required variables:
 
-- `DATABASE_URL` - MySQL connection string (e.g. `mysql://user:password@host:3306/database`)
-- `ADMIN_SECRET` - Secret for admin dashboard access (use a strong password)
+- `ADMIN_PASSWORD` - Password for admin dashboard access (use a strong password)
+- `DATABASE_URL` - Database connection string (SQLite: `file:./dev.db` for dev; MySQL for production)
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `ADMIN_EMAIL` - For volunteer & contact email notifications
 
 ### 3. Initialize database
 
@@ -94,13 +95,25 @@ src/
 
 ## Admin Dashboard
 
-Access at `/admin`. Use the value of `ADMIN_SECRET` from your `.env` as the password.
+Access at `/admin` (redirects to `/admin/login`). Use the value of `ADMIN_PASSWORD` from your `.env` as the password.
 
 ## Deployment
 
-1. Set `DATABASE_URL` and `ADMIN_SECRET` in your hosting environment
-2. Run `npm run build`
-3. Run `npm run start` or deploy to Vercel/Node hosting
+### Vercel (recommended)
 
-For Hostinger MySQL, use the connection string format:
-`mysql://username:password@hostname:3306/database_name`
+1. Create a new GitHub repository (suggested name: **`otocampaign-website`**) and push this project
+2. In [Vercel](https://vercel.com), click **Add New Project** → **Import Git Repository**
+3. Connect GitHub and select the repository
+4. Configure environment variables in Vercel project settings:
+   - `ADMIN_PASSWORD`
+   - `DATABASE_URL` (use MySQL for production, e.g. PlanetScale, Railway, Hostinger)
+   - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `ADMIN_EMAIL`
+5. Deploy — Vercel runs `prisma generate` (postinstall) and `next build` automatically
+
+### Manual deploy
+
+1. Set `ADMIN_PASSWORD`, `DATABASE_URL`, and SMTP variables in your hosting environment
+2. Run `npm run build`
+3. Run `npm run start` or deploy to Node hosting
+
+For MySQL (e.g. Hostinger), use: `mysql://username:password@hostname:3306/database_name`
