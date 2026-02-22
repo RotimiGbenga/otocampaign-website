@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { verifyAdminSession } from "@/lib/auth-edge";
 
-export function middleware(request: NextRequest) {
+/**
+ * Protects /admin routes. Reads cookies only - no modifications.
+ * Validates admin_auth token (signature + expiry) via Edge-compatible auth.
+ */
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Protect all admin routes except login
   if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
-    const isAuthenticated = request.cookies.get("admin_auth");
+    const isAuthenticated = await verifyAdminSession(request);
 
     if (!isAuthenticated) {
       return NextResponse.redirect(new URL("/admin/login", request.url));

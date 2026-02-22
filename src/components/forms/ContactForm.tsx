@@ -10,12 +10,13 @@ export default function ContactForm() {
     setStatus("Sending message...");
 
     const form = e.currentTarget;
+    const fd = new FormData(form);
 
     const formData = {
-      name: (form.name as HTMLInputElement).value,
-      email: (form.email as HTMLInputElement).value,
-      phone: (form.phone as HTMLInputElement).value,
-      message: (form.message as HTMLTextAreaElement).value,
+      name: (fd.get("name") ?? "") as string,
+      email: (fd.get("email") ?? "") as string,
+      phone: (fd.get("phone") ?? "") as string,
+      message: (fd.get("message") ?? "") as string,
     };
 
     try {

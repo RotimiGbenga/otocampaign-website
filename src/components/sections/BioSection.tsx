@@ -12,7 +12,7 @@ export function BioSection() {
           {/* Candidate Image */}
           <div className="order-2 lg:order-1 relative aspect-[4/5] min-h-[320px] sm:min-h-[400px] rounded-2xl overflow-hidden shadow-2xl bg-campaign-green-100 ring-2 ring-campaign-green-100">
             <Image
-              src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&q=80"
+              src="/images/droredipe.png"
               alt="Otunba Dr. Adetunji Oredipe - Candidate for Ogun State Governor"
               fill
               className="object-cover"

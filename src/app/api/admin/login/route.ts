@@ -1,5 +1,10 @@
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { setAdminSession } from "@/lib/auth";
+import {
+  createSessionToken,
+  COOKIE_NAME,
+  getSessionCookieOptions,
+} from "@/lib/auth";
 import type { LoginRequestBody, LoginResponse } from "@/lib/types/api";
 
 function parseLoginBody(body: unknown): { password: string } {
@@ -42,7 +47,9 @@ export async function POST(
       );
     }
 
-    await setAdminSession();
+    const token = await createSessionToken();
+    const cookieStore = await cookies();
+    cookieStore.set(COOKIE_NAME, token, getSessionCookieOptions());
 
     return NextResponse.json({
       success: true,

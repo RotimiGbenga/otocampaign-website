@@ -1,12 +1,20 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { Suspense, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 type LoginState = "idle" | "loading" | "error" | "success";
 
 export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-[70vh] flex items-center justify-center px-4 bg-gradient-to-b from-campaign-green-50 to-white"><p className="text-campaign-green-800">Loading...</p></div>}>
+      <AdminLoginForm />
+    </Suspense>
+  );
+}
+
+function AdminLoginForm() {
   const [password, setPassword] = useState("");
   const [state, setState] = useState<LoginState>("idle");
   const [errorMessage, setErrorMessage] = useState("");

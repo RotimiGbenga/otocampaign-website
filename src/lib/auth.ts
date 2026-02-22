@@ -1,8 +1,13 @@
 import "server-only";
 import { cookies } from "next/headers";
 
-const COOKIE_NAME = "admin_auth";
-const SESSION_MAX_AGE = 60 * 60 * 24; // 24 hours
+/**
+ * Admin auth - Next.js 15 App Router compliant.
+ * RULES: cookies().set() and cookies().delete() MUST only be called in Route Handlers.
+ * This module: token creation, verification, session read. No cookie mutations.
+ */
+export const COOKIE_NAME = "admin_auth";
+export const SESSION_MAX_AGE = 60 * 60 * 24; // 24 hours
 
 function getSecret(): string {
   const secret = process.env.ADMIN_PASSWORD;
@@ -89,22 +94,24 @@ export async function getAdminSession(): Promise<boolean> {
   return !!token && (await verifySessionToken(token));
 }
 
-export async function setAdminSession(): Promise<string> {
-  const token = await createSessionToken();
-  const cookieStore = await cookies();
-  cookieStore.set(COOKIE_NAME, token, {
+/**
+ * Session cookie options for Route Handlers only.
+ * Use with cookies().set() inside /api/admin/login.
+ */
+export function getSessionCookieOptions(): {
+  httpOnly: boolean;
+  secure: boolean;
+  sameSite: "lax" | "strict" | "none";
+  maxAge: number;
+  path: string;
+} {
+  return {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: SESSION_MAX_AGE,
     path: "/",
-  });
-  return token;
-}
-
-export async function clearAdminSession(): Promise<void> {
-  const cookieStore = await cookies();
-  cookieStore.delete(COOKIE_NAME);
+  };
 }
 
 export function getSessionCookieName() {

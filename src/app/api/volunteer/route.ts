@@ -1,41 +1,26 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { volunteerSchema } from "@/lib/validations";
-import { sendVolunteerNotification } from "@/lib/email";
-import type { VolunteerResponse } from "@/lib/types/api";
 
-export async function POST(
-  request: NextRequest
-): Promise<NextResponse<VolunteerResponse>> {
+interface VolunteerBody {
+  fullName: string;
+  email: string;
+  phone: string;
+  lga: string;
+  message?: string;
+}
+
+export async function POST(req: Request) {
   try {
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
+    const body = (await req.json()) as VolunteerBody;
+
+    const { fullName, email, phone, lga, message } = body;
+
+    if (!fullName || !email || !phone || !lga) {
       return NextResponse.json(
-        { success: false, error: "Invalid JSON body", message: "Invalid JSON body" },
+        { success: false, message: "All required fields must be filled" },
         { status: 400 }
       );
     }
-
-    const parsed = volunteerSchema.safeParse(body);
-
-    if (!parsed.success) {
-      const firstError = parsed.error.errors[0];
-      const message =
-        firstError?.message ?? "Validation failed. Please check required fields.";
-      return NextResponse.json(
-        {
-          success: false,
-          error: message,
-          message,
-          details: parsed.error.flatten().fieldErrors as Record<string, string[]>,
-        },
-        { status: 400 }
-      );
-    }
-
-    const { fullName, email, phone, lga, message } = parsed.data;
 
     const volunteer = await prisma.volunteer.create({
       data: {
@@ -43,33 +28,26 @@ export async function POST(
         email,
         phone,
         lga,
-        message: message || null,
+        message: message || "",
       },
-    });
-
-    sendVolunteerNotification({
-      fullName: volunteer.fullName,
-      email: volunteer.email,
-      phone: volunteer.phone,
-      lga: volunteer.lga,
-      message: volunteer.message ?? undefined,
-      createdAt: volunteer.createdAt,
-    }).catch((err) => {
-      console.error("[API] Volunteer email failed (submission succeeded):", err);
     });
 
     return NextResponse.json({
       success: true,
       message: "Volunteer registered successfully",
-      data: { id: volunteer.id },
+      data: volunteer,
     });
-  } catch (error) {
-    console.error("[API] Volunteer submission error:", error);
+  } catch (error: unknown) {
+    console.error("VOLUNTEER API ERROR:", error);
+
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to process volunteer submission",
         message: "Failed to process volunteer submission",
+        error: errorMessage,
       },
       { status: 500 }
     );

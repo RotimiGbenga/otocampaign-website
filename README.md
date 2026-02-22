@@ -65,6 +65,8 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run dev` | Start development server |
 | `npm run build` | Build for production |
 | `npm run start` | Start production server |
+| `npm run clean` | Remove `.next` (fixes stale types after route changes) |
+| `npm run clean:all` | Remove `.next` and `node_modules/.cache` |
 | `npm run db:push` | Push Prisma schema to database |
 | `npm run db:migrate` | Run migrations |
 | `npm run db:studio` | Open Prisma Studio |
@@ -75,9 +77,9 @@ Open [http://localhost:3000](http://localhost:3000).
 src/
 ├── app/
 │   ├── api/           # API routes
-│   │   ├── volunteers/
-│   │   ├── contacts/
-│   │   └── admin/
+│   │   ├── volunteer/   # Volunteer sign-up
+│   │   ├── contact/     # Contact form
+│   │   └── admin/       # login, logout
 │   ├── about/
 │   ├── get-involved/
 │   ├── contact/
@@ -117,4 +119,12 @@ Access at `/admin` (redirects to `/admin/login`). Use the value of `ADMIN_PASSWO
 3. Run `npm run start` or deploy to Node hosting
 
 For MySQL (e.g. Hostinger), use: `mysql://username:password@hostname:3306/database_name`
-# otocampaign-website
+
+### Build troubleshooting
+
+If you see "File is not a module" or stale type errors after changing routes, run:
+
+```bash
+npm run clean
+npm run build
+```
