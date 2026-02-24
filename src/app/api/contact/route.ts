@@ -71,13 +71,14 @@ export async function POST(
     );
   } catch (error: unknown) {
     const code = error && typeof error === "object" && "code" in error ? (error as { code?: string }).code : undefined;
-    const message = error instanceof Error ? error.message : String(error);
-    console.error("[CONTACT] POST failed:", { code, message, err: error });
+    const errMessage = error instanceof Error ? error.message : String(error);
+    console.error("[CONTACT] POST failed:", { code, message: errMessage, err: error });
     return NextResponse.json(
       {
         success: false,
         error: "Failed to save contact message",
         message: "Failed to save contact message",
+        detail: process.env.NODE_ENV === "development" ? errMessage : undefined,
       },
       { status: 500 }
     );

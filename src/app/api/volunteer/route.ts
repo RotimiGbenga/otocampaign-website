@@ -87,6 +87,7 @@ export async function POST(req: Request) {
         success: false,
         message: "Failed to process volunteer submission",
         error: errMessage,
+        detail: process.env.NODE_ENV === "development" ? errMessage : undefined,
       },
       { status: 500 }
     );
