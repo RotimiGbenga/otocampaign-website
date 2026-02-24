@@ -43,6 +43,8 @@ export async function POST(req: Request) {
       phone,
       lga,
       message,
+      skills,
+      availability,
     });
 
     if (!parsed.success) {

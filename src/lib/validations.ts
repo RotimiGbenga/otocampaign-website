@@ -17,12 +17,18 @@ function buildMessageFromSkillsAvailability(
 export const volunteerSchema = z.object({
   fullName: z
     .string()
-    .min(1, "Full name is required")
-    .max(200)
-    .transform((s) => s.trim()),
-  email: z.string().email("Invalid email address").toLowerCase(),
-  phone: z.string().min(1, "Phone is required").max(20),
-  lga: z.string().min(1, "LGA is required").max(100).transform((s) => s.trim()),
+    .transform((s) => s.trim())
+    .pipe(z.string().min(1, "Full name is required").max(200)),
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Please enter a valid email address")
+    .toLowerCase(),
+  phone: z.string().min(1, "Phone is required").max(50),
+  lga: z
+    .string()
+    .transform((s) => s.trim())
+    .pipe(z.string().min(1, "LGA is required").max(100)),
   message: z.string().max(2000).optional().default(""),
   skills: z.array(z.string()).optional(),
   availability: z.array(z.string()).optional(),

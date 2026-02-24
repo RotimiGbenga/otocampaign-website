@@ -12,16 +12,16 @@ export async function POST(
   try {
     const formData = await request.formData();
 
-    const rawName = String(formData.get("name") ?? "").trim();
-    const rawEmail = String(formData.get("email") ?? "").trim();
-    const rawPhone = String(formData.get("phone") ?? "").trim();
-    const rawMessage = String(formData.get("message") ?? "").trim();
+    const name = String(formData.get("name") ?? "").trim();
+    const email = String(formData.get("email") ?? "").trim();
+    const phone = String(formData.get("phone") ?? "").trim();
+    const message = String(formData.get("message") ?? "").trim();
 
     const parsed = contactSchema.safeParse({
-      name: rawName,
-      email: rawEmail,
-      phone: rawPhone,
-      message: rawMessage,
+      name,
+      email,
+      ...(phone ? { phone } : {}),
+      message,
     });
 
     if (!parsed.success) {
@@ -39,14 +39,14 @@ export async function POST(
       );
     }
 
-    const { name, email, phone, message } = parsed.data;
+    const { name: validName, email: validEmail, phone: validPhone, message: validMessage } = parsed.data;
 
     const contact = await prisma.contact.create({
       data: {
-        name,
-        email,
-        phone: phone || null,
-        message,
+        name: validName,
+        email: validEmail,
+        phone: validPhone ?? null,
+        message: validMessage,
       },
     });
 
