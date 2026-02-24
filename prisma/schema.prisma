@@ -1,5 +1,7 @@
 // Prisma schema for Otunba Campaign - Ogun State 2027
-// Database: Supabase PostgreSQL
+// Database: Supabase PostgreSQL (Vercel serverless)
+// DATABASE_URL must use pooler: aws-0-[REGION].pooler.supabase.com:6543
+// Add ?pgbouncer=true for transaction pooler compatibility with writes
 // Run: npx prisma generate && npx prisma db push (or prisma migrate dev)
 
 generator client {
