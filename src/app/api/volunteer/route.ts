@@ -4,72 +4,66 @@ import { volunteerSchema } from "@/lib/validations";
 
 export const runtime = "nodejs";
 
-async function parseVolunteerBody(req: Request): Promise<unknown> {
-  const contentType = req.headers.get("content-type") ?? "";
-
-  if (contentType.includes("application/json")) {
-    try {
-      return (await req.json()) as unknown;
-    } catch {
-      throw new Error("Invalid JSON body");
-    }
+function buildMessageFromCheckboxes(
+  skills: string[],
+  availability: string[]
+): string {
+  const parts: string[] = [];
+  if (skills.length > 0) {
+    parts.push(`Skills: ${skills.join(", ")}`);
   }
-
-  if (
-    contentType.includes("multipart/form-data") ||
-    contentType.includes("application/x-www-form-urlencoded")
-  ) {
-    const formData = await req.formData();
-    const skills = formData.getAll("skills");
-    const availability = formData.getAll("availability");
-    return {
-      fullName: formData.get("fullName") ?? "",
-      email: formData.get("email") ?? "",
-      phone: formData.get("phone") ?? "",
-      lga: formData.get("lga") ?? "",
-      message: formData.get("message") ?? "",
-      skills: skills.filter((v): v is string => typeof v === "string"),
-      availability: availability.filter((v): v is string => typeof v === "string"),
-    };
+  if (availability.length > 0) {
+    parts.push(`Availability: ${availability.join(", ")}`);
   }
-
-  throw new Error("Unsupported content type. Use JSON or FormData.");
+  return parts.join(" | ") || "";
 }
 
 export async function POST(req: Request) {
   try {
-    let rawBody: unknown;
-    try {
-      rawBody = await parseVolunteerBody(req);
-    } catch (parseError) {
-      const msg = parseError instanceof Error ? parseError.message : "Invalid request body";
-      console.error("[VOLUNTEER] Parse error:", msg);
-      return NextResponse.json(
-        { success: false, message: msg },
-        { status: 400 }
-      );
-    }
+    const formData = await req.formData();
 
-    const parsed = volunteerSchema.safeParse(rawBody);
+    const fullName = String(formData.get("fullName") ?? "").trim();
+    const email = String(formData.get("email") ?? "").trim();
+    const phone = String(formData.get("phone") ?? "").trim();
+    const lga = String(formData.get("lga") ?? "").trim();
+    const skills = formData
+      .getAll("skills")
+      .filter((v): v is string => typeof v === "string");
+    const availability = formData
+      .getAll("availability")
+      .filter((v): v is string => typeof v === "string");
+
+    const message =
+      String(formData.get("message") ?? "").trim() ||
+      buildMessageFromCheckboxes(skills, availability);
+
+    const parsed = volunteerSchema.safeParse({
+      fullName,
+      email,
+      phone,
+      lga,
+      message,
+    });
 
     if (!parsed.success) {
       const firstError = parsed.error.errors[0];
-      const message = firstError?.message ?? "Validation failed. Please check required fields.";
+      const errMessage =
+        firstError?.message ?? "Validation failed. Please check required fields.";
       return NextResponse.json(
-        { success: false, message, details: parsed.error.flatten().fieldErrors },
+        { success: false, message: errMessage, details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
 
-    const { fullName, email, phone, lga, message } = parsed.data;
+    const { fullName: fn, email: em, phone: ph, lga: lg, message: msg } = parsed.data;
 
     const volunteer = await prisma.volunteer.create({
       data: {
-        fullName,
-        email,
-        phone,
-        lga,
-        message: message || "",
+        fullName: fn,
+        email: em,
+        phone: ph,
+        lga: lg,
+        message: msg || "",
       },
     });
 

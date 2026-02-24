@@ -20,20 +20,6 @@ const VOLUNTEER_AVAILABILITY = [
   "Weekends",
 ] as const;
 
-function buildMessageString(
-  skills: string[],
-  availability: string[]
-): string {
-  const parts: string[] = [];
-  if (skills.length > 0) {
-    parts.push(`Skills: ${skills.join(", ")}`);
-  }
-  if (availability.length > 0) {
-    parts.push(`Availability: ${availability.join(", ")}`);
-  }
-  return parts.join(" | ") || "";
-}
-
 export default function VolunteerForm() {
   const [status, setStatus] = useState<string>("");
 
@@ -42,32 +28,12 @@ export default function VolunteerForm() {
     setStatus("Submitting...");
 
     const form = e.currentTarget;
-
-    const skills = Array.from(
-      form.querySelectorAll<HTMLInputElement>('input[name="skills"]:checked')
-    ).map((el) => el.value);
-    const availability = Array.from(
-      form.querySelectorAll<HTMLInputElement>(
-        'input[name="availability"]:checked'
-      )
-    ).map((el) => el.value);
-    const message = buildMessageString(skills, availability);
-
-    const formData = {
-      fullName: (form.fullName as HTMLInputElement).value,
-      email: (form.email as HTMLInputElement).value,
-      phone: (form.phone as HTMLInputElement).value,
-      lga: (form.lga as HTMLSelectElement).value,
-      message,
-    };
+    const formData = new FormData(form);
 
     try {
       const res = await fetch("/api/volunteer", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+        body: formData,
       });
 
       const data = await res.json();

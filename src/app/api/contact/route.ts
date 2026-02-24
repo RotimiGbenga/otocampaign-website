@@ -6,60 +6,33 @@ import type { ContactResponse } from "@/lib/types/api";
 
 export const runtime = "nodejs";
 
-async function parseContactBody(req: NextRequest): Promise<unknown> {
-  const contentType = req.headers.get("content-type") ?? "";
-
-  if (contentType.includes("application/json")) {
-    try {
-      return (await req.json()) as unknown;
-    } catch {
-      throw new Error("Invalid JSON body");
-    }
-  }
-
-  if (
-    contentType.includes("multipart/form-data") ||
-    contentType.includes("application/x-www-form-urlencoded")
-  ) {
-    const formData = await req.formData();
-    return {
-      name: formData.get("name") ?? "",
-      email: formData.get("email") ?? "",
-      phone: formData.get("phone") ?? "",
-      message: formData.get("message") ?? "",
-    };
-  }
-
-  throw new Error("Unsupported content type. Use JSON or FormData.");
-}
-
 export async function POST(
   request: NextRequest
 ): Promise<NextResponse<ContactResponse>> {
   try {
-    let body: unknown;
-    try {
-      body = await parseContactBody(request);
-    } catch (parseError) {
-      const msg = parseError instanceof Error ? parseError.message : "Invalid request body";
-      console.error("[CONTACT] Parse error:", msg);
-      return NextResponse.json(
-        { success: false, error: msg, message: msg },
-        { status: 400 }
-      );
-    }
+    const formData = await request.formData();
 
-    const parsed = contactSchema.safeParse(body);
+    const rawName = String(formData.get("name") ?? "").trim();
+    const rawEmail = String(formData.get("email") ?? "").trim();
+    const rawPhone = String(formData.get("phone") ?? "").trim();
+    const rawMessage = String(formData.get("message") ?? "").trim();
+
+    const parsed = contactSchema.safeParse({
+      name: rawName,
+      email: rawEmail,
+      phone: rawPhone,
+      message: rawMessage,
+    });
 
     if (!parsed.success) {
       const firstError = parsed.error.errors[0];
-      const message =
+      const errMessage =
         firstError?.message ?? "Validation failed. Please check required fields.";
       return NextResponse.json(
         {
           success: false,
-          error: message,
-          message,
+          error: errMessage,
+          message: errMessage,
           details: parsed.error.flatten().fieldErrors as Record<string, string[]>,
         },
         { status: 400 }

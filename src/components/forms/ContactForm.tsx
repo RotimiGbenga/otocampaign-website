@@ -10,22 +10,12 @@ export default function ContactForm() {
     setStatus("Sending message...");
 
     const form = e.currentTarget;
-    const fd = new FormData(form);
-
-    const formData = {
-      name: (fd.get("name") ?? "") as string,
-      email: (fd.get("email") ?? "") as string,
-      phone: (fd.get("phone") ?? "") as string,
-      message: (fd.get("message") ?? "") as string,
-    };
+    const formData = new FormData(form);
 
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+        body: formData,
       });
 
       const data = await res.json();
