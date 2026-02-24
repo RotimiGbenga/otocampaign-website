@@ -6,16 +6,45 @@ import type { ContactResponse } from "@/lib/types/api";
 
 export const runtime = "nodejs";
 
+async function parseContactBody(req: NextRequest): Promise<unknown> {
+  const contentType = req.headers.get("content-type") ?? "";
+
+  if (contentType.includes("application/json")) {
+    try {
+      return (await req.json()) as unknown;
+    } catch {
+      throw new Error("Invalid JSON body");
+    }
+  }
+
+  if (
+    contentType.includes("multipart/form-data") ||
+    contentType.includes("application/x-www-form-urlencoded")
+  ) {
+    const formData = await req.formData();
+    return {
+      name: formData.get("name") ?? "",
+      email: formData.get("email") ?? "",
+      phone: formData.get("phone") ?? "",
+      message: formData.get("message") ?? "",
+    };
+  }
+
+  throw new Error("Unsupported content type. Use JSON or FormData.");
+}
+
 export async function POST(
   request: NextRequest
 ): Promise<NextResponse<ContactResponse>> {
   try {
     let body: unknown;
     try {
-      body = await request.json();
-    } catch {
+      body = await parseContactBody(request);
+    } catch (parseError) {
+      const msg = parseError instanceof Error ? parseError.message : "Invalid request body";
+      console.error("[CONTACT] Parse error:", msg);
       return NextResponse.json(
-        { success: false, error: "Invalid JSON body", message: "Invalid JSON body" },
+        { success: false, error: msg, message: msg },
         { status: 400 }
       );
     }
@@ -59,11 +88,14 @@ export async function POST(
       console.error("[CONTACT] Email notification failed (submission succeeded):", { message: msg, err });
     });
 
-    return NextResponse.json({
-      success: true,
-      message: "Message saved successfully",
-      data: { id: contact.id },
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Message saved successfully",
+        data: { id: contact.id },
+      },
+      { status: 200 }
+    );
   } catch (error: unknown) {
     const code = error && typeof error === "object" && "code" in error ? (error as { code?: string }).code : undefined;
     const message = error instanceof Error ? error.message : String(error);
