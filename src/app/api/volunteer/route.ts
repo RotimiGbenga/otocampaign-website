@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
+export const runtime = "nodejs";
+
 interface VolunteerBody {
   fullName: string;
   email: string;
@@ -38,7 +40,9 @@ export async function POST(req: Request) {
       data: volunteer,
     });
   } catch (error: unknown) {
-    console.error("VOLUNTEER API ERROR:", error);
+    const code = error && typeof error === "object" && "code" in error ? (error as { code?: string }).code : undefined;
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("[VOLUNTEER] POST failed:", { code, message, err: error });
 
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";

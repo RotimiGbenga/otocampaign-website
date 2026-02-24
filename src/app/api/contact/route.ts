@@ -4,6 +4,8 @@ import { contactSchema } from "@/lib/validations";
 import { sendContactNotification } from "@/lib/email";
 import type { ContactResponse } from "@/lib/types/api";
 
+export const runtime = "nodejs";
+
 export async function POST(
   request: NextRequest
 ): Promise<NextResponse<ContactResponse>> {
@@ -52,8 +54,9 @@ export async function POST(
       phone: contact.phone,
       message: contact.message,
       createdAt: contact.createdAt,
-    }).catch((err) => {
-      console.error("[API] Contact email failed (submission succeeded):", err);
+    }).catch((err: unknown) => {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[CONTACT] Email notification failed (submission succeeded):", { message: msg, err });
     });
 
     return NextResponse.json({
@@ -61,8 +64,10 @@ export async function POST(
       message: "Message saved successfully",
       data: { id: contact.id },
     });
-  } catch (error) {
-    console.error("[API] Contact submission error:", error);
+  } catch (error: unknown) {
+    const code = error && typeof error === "object" && "code" in error ? (error as { code?: string }).code : undefined;
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("[CONTACT] POST failed:", { code, message, err: error });
     return NextResponse.json(
       {
         success: false,

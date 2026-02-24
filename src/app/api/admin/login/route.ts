@@ -55,8 +55,9 @@ export async function POST(
       success: true,
       redirect: "/admin",
     });
-  } catch (error) {
-    console.error("[AUTH] Login error:", error);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("[AUTH] Login failed:", { message, err: error });
     return NextResponse.json(
       { success: false, error: "Login failed" },
       { status: 500 }

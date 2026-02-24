@@ -3,6 +3,37 @@
 import { useState } from "react";
 import { OGUN_STATE_LGAS } from "@/lib/campaign";
 
+const VOLUNTEER_SKILLS = [
+  "Canvassing (Door-to-door)",
+  "Phone Banking (to raise funds)",
+  "Campaign Planning & Support",
+  "Social Media Advocacy",
+  "Data Entry/Collection",
+  "Transportation / Driving",
+  "Security",
+] as const;
+
+const VOLUNTEER_AVAILABILITY = [
+  "Weekday Mornings",
+  "Weekday Afternoons",
+  "Weekday Evenings",
+  "Weekends",
+] as const;
+
+function buildMessageString(
+  skills: string[],
+  availability: string[]
+): string {
+  const parts: string[] = [];
+  if (skills.length > 0) {
+    parts.push(`Skills: ${skills.join(", ")}`);
+  }
+  if (availability.length > 0) {
+    parts.push(`Availability: ${availability.join(", ")}`);
+  }
+  return parts.join(" | ") || "";
+}
+
 export default function VolunteerForm() {
   const [status, setStatus] = useState<string>("");
 
@@ -12,12 +43,22 @@ export default function VolunteerForm() {
 
     const form = e.currentTarget;
 
+    const skills = Array.from(
+      form.querySelectorAll<HTMLInputElement>('input[name="skills"]:checked')
+    ).map((el) => el.value);
+    const availability = Array.from(
+      form.querySelectorAll<HTMLInputElement>(
+        'input[name="availability"]:checked'
+      )
+    ).map((el) => el.value);
+    const message = buildMessageString(skills, availability);
+
     const formData = {
       fullName: (form.fullName as HTMLInputElement).value,
       email: (form.email as HTMLInputElement).value,
       phone: (form.phone as HTMLInputElement).value,
       lga: (form.lga as HTMLSelectElement).value,
-      message: (form.message as HTMLTextAreaElement).value,
+      message,
     };
 
     try {
@@ -96,13 +137,51 @@ export default function VolunteerForm() {
         ))}
       </select>
 
-      {/* MESSAGE */}
-      <textarea
-        name="message"
-        placeholder="How would you like to support the campaign?"
-        rows={4}
-        className="w-full p-3 border rounded"
-      />
+      {/* SKILLS */}
+      <fieldset className="space-y-2 p-4 border rounded bg-gray-50">
+        <legend className="text-sm font-semibold text-campaign-green-800 px-1">
+          Skills (Select all that apply)
+        </legend>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {VOLUNTEER_SKILLS.map((skill) => (
+            <label
+              key={skill}
+              className="flex items-center gap-2 cursor-pointer hover:text-campaign-green-700"
+            >
+              <input
+                type="checkbox"
+                name="skills"
+                value={skill}
+                className="rounded border-gray-300 text-campaign-green-600 focus:ring-campaign-green-500"
+              />
+              <span className="text-sm">{skill}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      {/* AVAILABILITY */}
+      <fieldset className="space-y-2 p-4 border rounded bg-gray-50">
+        <legend className="text-sm font-semibold text-campaign-green-800 px-1">
+          Availability (Select all that apply)
+        </legend>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {VOLUNTEER_AVAILABILITY.map((avail) => (
+            <label
+              key={avail}
+              className="flex items-center gap-2 cursor-pointer hover:text-campaign-green-700"
+            >
+              <input
+                type="checkbox"
+                name="availability"
+                value={avail}
+                className="rounded border-gray-300 text-campaign-green-600 focus:ring-campaign-green-500"
+              />
+              <span className="text-sm">{avail}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
 
       <button
         type="submit"

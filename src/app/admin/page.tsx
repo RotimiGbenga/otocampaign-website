@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export default async function AdminPage() {
   unstable_noStore();
@@ -15,8 +16,10 @@ export default async function AdminPage() {
       prisma.volunteer.findMany({ orderBy: { createdAt: "desc" } }),
       prisma.contact.findMany({ orderBy: { createdAt: "desc" } }),
     ]);
-  } catch (err) {
-    console.error("Admin dashboard DB error:", err);
+  } catch (err: unknown) {
+    const code = err && typeof err === "object" && "code" in err ? (err as { code?: string }).code : undefined;
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[ADMIN] Dashboard DB error:", { code, message, err });
   }
 
   return (
