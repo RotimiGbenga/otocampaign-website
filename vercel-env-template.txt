@@ -3,9 +3,9 @@
 # Apply to: Production, Preview, Development
 # Use the SAME values as your local .env
 
-# CRITICAL for volunteer/contact forms:
-# DATABASE_URL must match .env exactly - port 6543, pgbouncer=true, connection_limit=1
-# App now uses @prisma/adapter-pg for better Vercel/Supabase compatibility
+# CRITICAL: Vercel has NO IPv6 - must use pooler host (aws-0-*.pooler.supabase.com)
+# NOT db.supabase.co - that uses IPv6 only and Vercel cannot reach it (P1001)
+# Get from: Supabase Dashboard → Connect → Transaction pooler
 
 DATABASE_URL=
 ADMIN_PASSWORD=
