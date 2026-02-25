@@ -3,9 +3,9 @@
 # Apply to: Production, Preview, Development
 # Use the SAME values as your local .env
 
-# Required for volunteer/contact forms on Vercel:
-# DATABASE_URL must use port 6543 with ?pgbouncer=true&connection_limit=1
-# Copy from your .env file
+# CRITICAL for volunteer/contact forms:
+# DATABASE_URL must match .env exactly - port 6543, pgbouncer=true, connection_limit=1
+# App now uses @prisma/adapter-pg for better Vercel/Supabase compatibility
 
 DATABASE_URL=
 ADMIN_PASSWORD=
