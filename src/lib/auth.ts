@@ -95,6 +95,15 @@ export async function getAdminSession(): Promise<boolean> {
 }
 
 /**
+ * Node.js API route-compatible session verification.
+ * Uses cookies() from next/headers - use in Route Handlers with runtime "nodejs".
+ * For middleware (Edge), use auth-edge's verifyAdminSession(request) instead.
+ */
+export async function verifyAdminSession(): Promise<boolean> {
+  return getAdminSession();
+}
+
+/**
  * Session cookie options for Route Handlers only.
  * Use with cookies().set() inside /api/admin/login.
  */
