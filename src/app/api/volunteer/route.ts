@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { volunteerSchema } from "@/lib/validations";
+import { sendVolunteerNotification } from "@/lib/email";
 
 export const runtime = "nodejs";
 
@@ -67,6 +68,20 @@ export async function POST(req: Request) {
         lga: lg,
         message: msg || "",
       },
+    });
+
+    sendVolunteerNotification({
+      fullName: volunteer.fullName,
+      email: volunteer.email,
+      phone: volunteer.phone,
+      lga: volunteer.lga,
+      skills: skills.length ? skills : undefined,
+      availability: availability.length ? availability : undefined,
+      message: volunteer.message ?? undefined,
+      createdAt: volunteer.createdAt,
+    }).catch((err: unknown) => {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[VOLUNTEER] Email notification failed (submission succeeded):", { message: msg, err });
     });
 
     return NextResponse.json(

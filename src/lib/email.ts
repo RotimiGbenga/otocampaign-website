@@ -48,6 +48,8 @@ export type VolunteerNotificationData = {
   email: string;
   phone: string;
   lga: string;
+  skills?: string[];
+  availability?: string[];
   message?: string;
   createdAt: Date;
 };
@@ -79,23 +81,30 @@ export async function sendVolunteerNotification(
     if (!transporter) return;
 
     const adminEmail = process.env.ADMIN_EMAIL!;
+    const skills = data.skills?.length
+      ? escapeHtml(data.skills.join(", "))
+      : (data.message?.match(/Skills:\s*([^|]+)/)?.[1]?.trim() ?? "-");
+    const availability = data.availability?.length
+      ? escapeHtml(data.availability.join(", "))
+      : (data.message?.match(/Availability:\s*([^|]+)/)?.[1]?.trim() ?? "-");
+
     const html = `
-      <h2>New Volunteer Registration – Campaign Website</h2>
+      <h2>New Volunteer – OTO Campaign</h2>
       <p>A new supporter has registered as a volunteer.</p>
       <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse;">
         <tr><td><strong>Full Name</strong></td><td>${escapeHtml(data.fullName)}</td></tr>
-        <tr><td><strong>Email</strong></td><td>${escapeHtml(data.email)}</td></tr>
         <tr><td><strong>Phone</strong></td><td>${escapeHtml(data.phone)}</td></tr>
+        <tr><td><strong>Email</strong></td><td>${escapeHtml(data.email)}</td></tr>
         <tr><td><strong>LGA</strong></td><td>${escapeHtml(data.lga)}</td></tr>
-        <tr><td><strong>Message</strong></td><td>${escapeHtml(data.message ?? "-")}</td></tr>
-        <tr><td><strong>Submitted</strong></td><td>${formatTimestamp(data.createdAt)}</td></tr>
+        <tr><td><strong>Skills & Availability</strong></td><td>${skills === "-" && availability === "-" ? "-" : `${skills} | ${availability}`}</td></tr>
+        <tr><td><strong>Submission Date</strong></td><td>${formatTimestamp(data.createdAt)}</td></tr>
       </table>
     `;
 
     await transporter.sendMail({
       from: process.env.SMTP_FROM ?? adminEmail,
       to: adminEmail,
-      subject: "New Volunteer Registration – Campaign Website",
+      subject: "New Volunteer – OTO Campaign",
       html,
     });
   } catch (err) {
@@ -123,7 +132,7 @@ export async function sendContactNotification(
 
     const adminEmail = process.env.ADMIN_EMAIL!;
     const html = `
-      <h2>New Contact Message – Campaign Website</h2>
+      <h2>New Contact – OTO Campaign</h2>
       <p>A new message has been received through the contact form.</p>
       <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse;">
         <tr><td><strong>Name</strong></td><td>${escapeHtml(data.name)}</td></tr>
@@ -137,7 +146,7 @@ export async function sendContactNotification(
     await transporter.sendMail({
       from: process.env.SMTP_FROM ?? adminEmail,
       to: adminEmail,
-      subject: "New Contact Message – Campaign Website",
+      subject: "New Contact Message – OTO Campaign",
       html,
     });
   } catch (err) {
