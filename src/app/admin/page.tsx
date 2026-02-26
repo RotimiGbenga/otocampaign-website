@@ -1,6 +1,7 @@
 import { unstable_noStore } from "next/cache";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { ExportButton } from "@/components/admin/ExportButton";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -66,44 +67,14 @@ export default async function AdminPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <a
-            href="/api/admin/export/volunteers"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-              />
-            </svg>
-            Export Volunteers
-          </a>
-          <a
-            href="/api/admin/export/contacts"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-              />
-            </svg>
-            Export Contacts
-          </a>
+          <ExportButton
+            url="/api/admin/export/volunteers"
+            label="Export Volunteers"
+          />
+          <ExportButton
+            url="/api/admin/export/contacts"
+            label="Export Contacts"
+          />
         </div>
       </div>
 
