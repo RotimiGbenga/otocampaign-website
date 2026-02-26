@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { verifyAdminSession } from "@/lib/auth-edge";
+import { getAdminSession } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -12,8 +12,8 @@ function escapeCsvCell(value: string): string {
   return str;
 }
 
-export async function GET(request: NextRequest) {
-  const isAuth = await verifyAdminSession(request);
+export async function GET() {
+  const isAuth = await getAdminSession();
   if (!isAuth) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
