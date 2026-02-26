@@ -16,35 +16,41 @@ export function ExportButton({ url, label, className }: ExportButtonProps) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(url, {
+      const absoluteUrl =
+        url.startsWith("http") ? url : `${window.location.origin}${url.startsWith("/") ? "" : "/"}${url}`;
+      const response = await fetch(absoluteUrl, {
         method: "GET",
         credentials: "include",
       });
 
-      if (!res.ok) {
-        if (res.status === 401) {
+      if (!response.ok) {
+        if (response.status === 401) {
           setError("Session expired. Please log in again.");
+          alert("Export failed. Please login again.");
           window.location.href = "/admin/login";
           return;
         }
-        throw new Error(res.statusText || "Export failed");
+        throw new Error("Unauthorized or export failed");
       }
 
-      const blob = await res.blob();
-      const contentDisposition = res.headers.get("Content-Disposition");
+      const blob = await response.blob();
+      const contentDisposition = response.headers.get("Content-Disposition");
       const match = contentDisposition?.match(/filename="?([^";]+)"?/);
-      const filename = match?.[1] ?? "export.csv";
+      const filename = match?.[1] ?? "volunteers.csv";
 
+      const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
+      a.href = downloadUrl;
       a.download = filename;
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(a.href);
+      a.remove();
+      window.URL.revokeObjectURL(downloadUrl);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Export failed");
-      console.error("[Export]", err);
+      const msg = err instanceof Error ? err.message : "Export failed";
+      setError(msg);
+      console.error("Export error:", err);
+      alert("Export failed. Please login again.");
     } finally {
       setLoading(false);
     }
