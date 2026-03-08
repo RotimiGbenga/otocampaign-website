@@ -26,6 +26,8 @@ export async function POST(req: Request) {
     const fullName = String(formData.get("fullName") ?? "").trim();
     const email = String(formData.get("email") ?? "").trim();
     const phone = String(formData.get("phone") ?? "").trim();
+    const country = String(formData.get("country") ?? "").trim();
+    const state = String(formData.get("state") ?? "").trim();
     const lga = String(formData.get("lga") ?? "").trim();
     const skills = formData
       .getAll("skills")
@@ -42,7 +44,9 @@ export async function POST(req: Request) {
       fullName,
       email,
       phone,
-      lga,
+      country,
+      state,
+      lga: lga || undefined,
       message,
       skills,
       availability,
@@ -65,7 +69,9 @@ export async function POST(req: Request) {
         fullName: fn,
         email: em,
         phone: ph,
-        lga: lg,
+        lga: lg ?? null,
+        country: parsed.data.country,
+        state: parsed.data.state,
         message: msg || "",
       },
     });
@@ -74,7 +80,9 @@ export async function POST(req: Request) {
       fullName: volunteer.fullName,
       email: volunteer.email,
       phone: volunteer.phone,
-      lga: volunteer.lga,
+      country: volunteer.country ?? undefined,
+      state: volunteer.state ?? undefined,
+      lga: volunteer.lga ?? undefined,
       skills: skills.length ? skills : undefined,
       availability: availability.length ? availability : undefined,
       message: volunteer.message ?? undefined,

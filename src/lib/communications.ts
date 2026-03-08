@@ -11,6 +11,7 @@ export const BROADCAST_SKILLS = [
   "Data Entry/Collection",
   "Transportation / Driving",
   "Security",
+  "Donate",
 ] as const;
 
 export const BROADCAST_AVAILABILITY = [

@@ -47,7 +47,9 @@ export type VolunteerNotificationData = {
   fullName: string;
   email: string;
   phone: string;
-  lga: string;
+  country?: string;
+  state?: string;
+  lga?: string;
   skills?: string[];
   availability?: string[];
   message?: string;
@@ -95,7 +97,9 @@ export async function sendVolunteerNotification(
         <tr><td><strong>Full Name</strong></td><td>${escapeHtml(data.fullName)}</td></tr>
         <tr><td><strong>Phone</strong></td><td>${escapeHtml(data.phone)}</td></tr>
         <tr><td><strong>Email</strong></td><td>${escapeHtml(data.email)}</td></tr>
-        <tr><td><strong>LGA</strong></td><td>${escapeHtml(data.lga)}</td></tr>
+        <tr><td><strong>Country</strong></td><td>${escapeHtml(data.country ?? "-")}</td></tr>
+        <tr><td><strong>State</strong></td><td>${escapeHtml(data.state ?? "-")}</td></tr>
+        <tr><td><strong>LGA</strong></td><td>${escapeHtml(data.lga ?? "-")}</td></tr>
         <tr><td><strong>Skills & Availability</strong></td><td>${skills === "-" && availability === "-" ? "-" : `${skills} | ${availability}`}</td></tr>
         <tr><td><strong>Submission Date</strong></td><td>${formatTimestamp(data.createdAt)}</td></tr>
       </table>

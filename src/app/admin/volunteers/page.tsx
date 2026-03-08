@@ -111,6 +111,12 @@ export default async function AdminVolunteersPage({ searchParams }: PageProps) {
                   Email
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium uppercase">
+                  Country
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase">
+                  State
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase">
                   LGA
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium uppercase hidden lg:table-cell">
@@ -125,7 +131,7 @@ export default async function AdminVolunteersPage({ searchParams }: PageProps) {
               {volunteers.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={8}
                     className="px-4 py-8 text-center text-gray-500"
                   >
                     No volunteers found.
@@ -153,7 +159,15 @@ export default async function AdminVolunteersPage({ searchParams }: PageProps) {
                         {v.email}
                       </a>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-700">{v.lga}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">
+                      {v.country ?? "-"}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-700">
+                      {v.state ?? "-"}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-700">
+                      {v.lga ?? "-"}
+                    </td>
                     <td className="px-4 py-3 text-sm text-gray-600 hidden lg:table-cell max-w-[200px] truncate">
                       {v.message || "-"}
                     </td>

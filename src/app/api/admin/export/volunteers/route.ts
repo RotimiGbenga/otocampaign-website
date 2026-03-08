@@ -44,6 +44,8 @@ export async function GET(request: NextRequest) {
     "Full Name",
     "Email",
     "Phone",
+    "Country",
+    "State",
     "LGA",
     "Message",
     "Created At",
@@ -52,7 +54,9 @@ export async function GET(request: NextRequest) {
     escapeCsvCell(v.fullName),
     escapeCsvCell(v.email),
     escapeCsvCell(v.phone),
-    escapeCsvCell(v.lga),
+    escapeCsvCell(v.country ?? ""),
+    escapeCsvCell(v.state ?? ""),
+    escapeCsvCell(v.lga ?? ""),
     escapeCsvCell(v.message ?? ""),
     escapeCsvCell(
       new Date(v.createdAt).toLocaleString("en-NG", {

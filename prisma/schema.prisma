@@ -18,7 +18,9 @@ model Volunteer {
   fullName  String
   email     String
   phone     String
-  lga       String
+  lga       String?
+  country   String   @default("Nigeria")
+  state     String   @default("")
   message   String?
   createdAt DateTime @default(now())
 }

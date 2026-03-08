@@ -25,10 +25,18 @@ export const volunteerSchema = z.object({
     .email("Please enter a valid email address")
     .toLowerCase(),
   phone: z.string().min(1, "Phone is required").max(50),
-  lga: z
+  country: z
     .string()
     .transform((s) => s.trim())
-    .pipe(z.string().min(1, "LGA is required").max(100)),
+    .pipe(z.string().min(1, "Country is required").max(100)),
+  state: z
+    .string()
+    .transform((s) => s.trim())
+    .pipe(z.string().min(1, "State is required").max(100)),
+  lga: z
+    .union([z.string(), z.undefined(), z.null()])
+    .transform((s) => (typeof s === "string" ? s.trim() : "") || undefined)
+    .optional(),
   message: z.string().max(2000).optional().default(""),
   skills: z.array(z.string()).optional(),
   availability: z.array(z.string()).optional(),
@@ -43,7 +51,9 @@ export const volunteerSchema = z.object({
     fullName: data.fullName,
     email: data.email,
     phone: data.phone,
-    lga: data.lga,
+    country: data.country,
+    state: data.state,
+    lga: data.lga || undefined,
     message: message.slice(0, 2000),
   };
 });

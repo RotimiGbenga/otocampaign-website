@@ -3,6 +3,55 @@
 import { useState } from "react";
 import { OGUN_STATE_LGAS } from "@/lib/campaign";
 
+const COUNTRIES = [
+  "Nigeria",
+  "United Kingdom",
+  "United States",
+  "Canada",
+  "South Africa",
+  "Other",
+] as const;
+
+const NIGERIAN_STATES = [
+  { value: "Abia", label: "Abia" },
+  { value: "Adamawa", label: "Adamawa" },
+  { value: "Akwa Ibom", label: "Akwa Ibom" },
+  { value: "Anambra", label: "Anambra" },
+  { value: "Bauchi", label: "Bauchi" },
+  { value: "Bayelsa", label: "Bayelsa" },
+  { value: "Benue", label: "Benue" },
+  { value: "Borno", label: "Borno" },
+  { value: "Cross River", label: "Cross River" },
+  { value: "Delta", label: "Delta" },
+  { value: "Ebonyi", label: "Ebonyi" },
+  { value: "Edo", label: "Edo" },
+  { value: "Ekiti", label: "Ekiti" },
+  { value: "Enugu", label: "Enugu" },
+  { value: "FCT", label: "Federal Capital Territory (Abuja)" },
+  { value: "Gombe", label: "Gombe" },
+  { value: "Imo", label: "Imo" },
+  { value: "Jigawa", label: "Jigawa" },
+  { value: "Kaduna", label: "Kaduna" },
+  { value: "Kano", label: "Kano" },
+  { value: "Katsina", label: "Katsina" },
+  { value: "Kebbi", label: "Kebbi" },
+  { value: "Kogi", label: "Kogi" },
+  { value: "Kwara", label: "Kwara" },
+  { value: "Lagos", label: "Lagos" },
+  { value: "Nasarawa", label: "Nasarawa" },
+  { value: "Niger", label: "Niger" },
+  { value: "Ogun", label: "Ogun" },
+  { value: "Ondo", label: "Ondo" },
+  { value: "Osun", label: "Osun" },
+  { value: "Oyo", label: "Oyo" },
+  { value: "Plateau", label: "Plateau" },
+  { value: "Rivers", label: "Rivers" },
+  { value: "Sokoto", label: "Sokoto" },
+  { value: "Taraba", label: "Taraba" },
+  { value: "Yobe", label: "Yobe" },
+  { value: "Zamfara", label: "Zamfara" },
+] as const;
+
 const VOLUNTEER_SKILLS = [
   "Canvassing (Door-to-door)",
   "Phone Banking (to raise funds)",
@@ -11,7 +60,19 @@ const VOLUNTEER_SKILLS = [
   "Data Entry/Collection",
   "Transportation / Driving",
   "Security",
+  "Donate",
 ] as const;
+
+const VOLUNTEER_SKILL_LABELS: Record<string, string> = {
+  "Donate": "Donate / Financial Support",
+  "Canvassing (Door-to-door)": "Canvassing (Door-to-door)",
+  "Phone Banking (to raise funds)": "Phone Banking (to raise funds)",
+  "Campaign Planning & Support": "Campaign Planning & Support",
+  "Social Media Advocacy": "Social Media Advocacy",
+  "Data Entry/Collection": "Data Entry/Collection",
+  "Transportation / Driving": "Transportation / Driving",
+  "Security": "Security",
+};
 
 const VOLUNTEER_AVAILABILITY = [
   "Weekday Mornings",
@@ -22,6 +83,8 @@ const VOLUNTEER_AVAILABILITY = [
 
 export default function VolunteerForm() {
   const [status, setStatus] = useState<string>("");
+  const [country, setCountry] = useState<string>("Nigeria");
+  const [stateValue, setStateValue] = useState<string>("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -41,6 +104,8 @@ export default function VolunteerForm() {
       if (data.success) {
         setStatus("✅ Thank you for joining the movement!");
         form.reset();
+        setCountry("Nigeria");
+        setStateValue("");
       } else {
         setStatus("❌ " + (data.message || "Submission failed"));
       }
@@ -86,22 +151,64 @@ export default function VolunteerForm() {
         className="w-full p-3 border rounded"
       />
 
-      {/* LGA - All 20 Ogun State LGAs */}
+      {/* COUNTRY */}
       <select
-        name="lga"
+        name="country"
+        value={country}
+        onChange={(e) => setCountry(e.target.value)}
         required
         className="w-full p-3 border rounded"
-        defaultValue=""
       >
-        <option value="" disabled>
-          Select Your LGA (Ogun State)
-        </option>
-        {OGUN_STATE_LGAS.map((lga) => (
-          <option key={lga} value={lga}>
-            {lga}
-          </option>
-        ))}
+        <option value="Nigeria">Nigeria</option>
+        <option value="United Kingdom">United Kingdom</option>
+        <option value="United States">United States</option>
+        <option value="Canada">Canada</option>
+        <option value="South Africa">South Africa</option>
+        <option value="Other">Other</option>
       </select>
+
+      {/* STATE - Dropdown for Nigeria, free text for international */}
+      {country === "Nigeria" ? (
+        <select
+          name="state"
+          value={stateValue}
+          onChange={(e) => setStateValue(e.target.value)}
+          required
+          className="w-full p-3 border rounded"
+        >
+          <option value="">Select State</option>
+          {NIGERIAN_STATES.map((s) => (
+            <option key={s.value} value={s.value}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <input
+          type="text"
+          name="state"
+          placeholder="State / Province / Region"
+          required
+          className="w-full p-3 border rounded"
+        />
+      )}
+
+      {/* LGA - Only for Nigeria + Ogun State */}
+      {country === "Nigeria" && stateValue === "Ogun" && (
+        <select
+          name="lga"
+          required
+          className="w-full p-3 border rounded"
+          defaultValue=""
+        >
+          <option value="">Select Your LGA (Ogun State)</option>
+          {OGUN_STATE_LGAS.map((lga) => (
+            <option key={lga} value={lga}>
+              {lga}
+            </option>
+          ))}
+        </select>
+      )}
 
       {/* SKILLS */}
       <fieldset className="space-y-2 p-4 border rounded bg-gray-50">
@@ -120,7 +227,9 @@ export default function VolunteerForm() {
                 value={skill}
                 className="rounded border-gray-300 text-campaign-green-600 focus:ring-campaign-green-500"
               />
-              <span className="text-sm">{skill}</span>
+              <span className="text-sm">
+                {VOLUNTEER_SKILL_LABELS[skill] ?? skill}
+              </span>
             </label>
           ))}
         </div>
