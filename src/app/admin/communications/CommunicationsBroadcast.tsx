@@ -35,12 +35,12 @@ export function CommunicationsBroadcast({
         if (selectedSkills.length) params.set("skills", selectedSkills.join(","));
         if (selectedAvailability.length) params.set("availability", selectedAvailability.join(","));
       }
-      const res = await fetch(`/api/admin/communications/preview?${params}`, {
+      const res = await fetch(`/api/admin/broadcast/preview?${params}`, {
         credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to fetch");
-      const data = await res.json();
-      setCount(data.count);
+      const data = (await res.json()) as { count?: number };
+      setCount(typeof data.count === "number" ? data.count : 0);
     } catch {
       setMessage({ type: "error", text: "Could not load recipient count" });
       setCount(null);

@@ -3,12 +3,13 @@
 import { useEffect, useCallback, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 
-const INACTIVITY_MINUTES = 30;
+const INACTIVITY_MINUTES = 15;
 
 export function ActivityTracker() {
   const router = useRouter();
   const pathname = usePathname();
   const isLoginPage = pathname === "/admin/login";
+  const isLogoutPage = pathname === "/admin/logout";
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const resetTimer = useCallback(() => {
@@ -16,16 +17,12 @@ export function ActivityTracker() {
       clearTimeout(timeoutRef.current);
     }
     timeoutRef.current = setTimeout(() => {
-      fetch("/api/admin/logout", { method: "POST", credentials: "include" })
-        .catch(() => {})
-        .finally(() => {
-          router.replace("/admin/login?reason=inactivity");
-        });
+      router.replace("/admin/logout");
     }, INACTIVITY_MINUTES * 60 * 1000);
   }, [router]);
 
   useEffect(() => {
-    if (isLoginPage) return;
+    if (isLoginPage || isLogoutPage) return;
 
     const events = ["mousedown", "keydown", "scroll", "touchstart"];
     events.forEach((e) => window.addEventListener(e, resetTimer));
@@ -35,7 +32,7 @@ export function ActivityTracker() {
       events.forEach((e) => window.removeEventListener(e, resetTimer));
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [resetTimer, isLoginPage]);
+  }, [resetTimer, isLoginPage, isLogoutPage]);
 
   return null;
 }

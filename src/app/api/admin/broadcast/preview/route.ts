@@ -30,10 +30,10 @@ export async function GET(request: NextRequest) {
     const where = buildVolunteerWhereClause(filters);
     const count = await prisma.volunteer.count({ where });
     return NextResponse.json({ count });
-  } catch (err) {
-    console.error("[COMMUNICATIONS] Preview failed:", err);
+  } catch (error) {
+    console.error("Preview count error:", error);
     return NextResponse.json(
-      { error: "Failed to get recipient count" },
+      { error: "Failed to load recipient count" },
       { status: 500 }
     );
   }

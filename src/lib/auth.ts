@@ -7,7 +7,7 @@ import { cookies } from "next/headers";
  * This module: token creation, verification, session read. No cookie mutations.
  */
 export const COOKIE_NAME = "admin_auth";
-export const SESSION_MAX_AGE = 60 * 60 * 24; // 24 hours
+export const SESSION_MAX_AGE = 60 * 15; // 15 minutes
 
 function getSecret(): string {
   const secret = process.env.ADMIN_PASSWORD;
@@ -117,7 +117,7 @@ export function getSessionCookieOptions(): {
   return {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "strict",
     maxAge: SESSION_MAX_AGE,
     path: "/",
   };
