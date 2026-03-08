@@ -153,3 +153,53 @@ export async function sendContactNotification(
     console.error("[EMAIL] Contact notification failed:", err);
   }
 }
+
+export type BroadcastRecipient = { email: string; fullName: string };
+
+/**
+ * Sends bulk broadcast email. Uses batching to avoid blocking.
+ * Failures are logged but do not stop other sends.
+ */
+export async function sendBulkBroadcastEmail(
+  recipients: BroadcastRecipient[],
+  subject: string,
+  bodyHtml: string
+): Promise<{ sent: number; failed: number }> {
+  if (!isEmailConfigured()) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[EMAIL] SMTP not configured – skipping broadcast");
+    }
+    return { sent: 0, failed: recipients.length };
+  }
+
+  const transporter = getTransporter();
+  if (!transporter) return { sent: 0, failed: recipients.length };
+
+  const from = process.env.SMTP_FROM ?? process.env.ADMIN_EMAIL ?? "noreply@campaign.local";
+  const BATCH_SIZE = 5;
+  let sent = 0;
+  let failed = 0;
+
+  for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
+    const batch = recipients.slice(i, i + BATCH_SIZE);
+    const results = await Promise.allSettled(
+      batch.map((r) =>
+        transporter.sendMail({
+          from,
+          to: r.email,
+          subject,
+          html: bodyHtml.replace(/{{name}}/g, escapeHtml(r.fullName)),
+        })
+      )
+    );
+    for (const r of results) {
+      if (r.status === "fulfilled") sent += 1;
+      else {
+        failed += 1;
+        console.error("[EMAIL] Broadcast failed:", r.reason);
+      }
+    }
+  }
+
+  return { sent, failed };
+}

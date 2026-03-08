@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { NAV_LINKS } from "@/lib/campaign";
@@ -10,10 +11,17 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-20 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-campaign-green-600 text-white font-display font-bold text-xl">
-              O
+        <div className="flex items-center justify-between gap-4 py-2">
+          <Link href="/" className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center">
+              <Image
+                src="/images/oto-logo.png"
+                alt="OTO 2027 Campaign Logo"
+                width={120}
+                height={120}
+                priority
+                className="h-14 w-auto md:h-16"
+              />
             </div>
             <span className="font-display text-xl font-bold text-campaign-green-900">
               Otunba Dr. Adetunji Oredipe For Governor
@@ -31,12 +39,6 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
-            <Link
-              href="/admin"
-              className="text-sm text-gray-500 hover:text-campaign-green-600"
-            >
-              Admin
-            </Link>
           </div>
 
           {/* Mobile menu button */}
@@ -85,13 +87,6 @@ export function Header() {
                   {link.label}
                 </Link>
               ))}
-              <Link
-                href="/admin"
-                className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Admin
-              </Link>
             </div>
           </div>
         )}
