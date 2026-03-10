@@ -35,8 +35,9 @@ export const volunteerSchema = z.object({
     .pipe(z.string().min(1, "State is required").max(100)),
   lga: z
     .union([z.string(), z.undefined(), z.null()])
-    .transform((s) => (typeof s === "string" ? s.trim() : "") || undefined)
-    .optional(),
+    .transform((s) => (typeof s === "string" ? s.trim() : "") || "")
+    .optional()
+    .default(""),
   message: z.string().max(2000).optional().default(""),
   skills: z.array(z.string()).optional(),
   availability: z.array(z.string()).optional(),
@@ -53,7 +54,7 @@ export const volunteerSchema = z.object({
     phone: data.phone,
     country: data.country,
     state: data.state,
-    lga: data.lga || undefined,
+    lga: data.lga || "",
     message: message.slice(0, 2000),
   };
 });
