@@ -107,9 +107,9 @@ function formatContent(content: string): string {
       trimmed.includes("Date:") &&
       (trimmed.includes("Time:") || trimmed.includes("Venue:"))
     ) {
-      const dateMatch = trimmed.match(/Date:\s*(.+?)(?=\n|$)/s);
-      const timeMatch = trimmed.match(/Time:\s*(.+?)(?=\n|$)/s);
-      const venueMatch = trimmed.match(/Venue:\s*(.+?)(?=\n|$)/s);
+      const dateMatch = trimmed.match(/Date:\s*([\s\S]+?)(?=\n|$)/);
+      const timeMatch = trimmed.match(/Time:\s*([\s\S]+?)(?=\n|$)/);
+      const venueMatch = trimmed.match(/Venue:\s*([\s\S]+?)(?=\n|$)/);
       parts.push(
         `<div class="bg-gray-100 p-4 rounded-lg my-6">` +
           `<p><strong>Date:</strong> ${escapeHtml(dateMatch?.[1]?.trim() ?? "")}</p>` +
@@ -139,7 +139,7 @@ function formatContent(content: string): string {
     ) {
       const contactLines = trimmed.split("\n").filter((l) => l.trim());
       const contactHtml = contactLines
-        .map((line, idx) => {
+        .map((line) => {
           const l = line.trim();
           if (!l || l.toLowerCase().startsWith("for enquiries")) return "";
           const escaped = escapeHtml(l);
