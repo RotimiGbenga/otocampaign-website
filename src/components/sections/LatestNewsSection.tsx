@@ -1,25 +1,26 @@
 import Link from "next/link";
 import Image from "next/image";
-import { prisma } from "@/lib/db";
 import { formatMediaDate } from "@/lib/formatDate";
+import type { MediaPost } from "@prisma/client";
 
-export const revalidate = 60;
+type LatestNewsSectionProps = {
+  posts: MediaPost[];
+};
 
-export async function LatestNewsSection() {
-  let posts: Awaited<ReturnType<typeof prisma.mediaPost.findMany>> = [];
-
-  try {
-    posts = await prisma.mediaPost.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 3,
-    });
-  } catch (error) {
-    console.error("Media posts could not be loaded:", error);
-    posts = [];
-  }
-
+export function LatestNewsSection({ posts }: LatestNewsSectionProps) {
   if (posts.length === 0) {
-    return null;
+    return (
+      <section className="py-16 sm:py-20 bg-white" aria-labelledby="latest-news-heading">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <h2 id="latest-news-heading" className="section-title mb-4">
+            Latest Campaign News
+          </h2>
+          <p className="text-gray-500 text-sm">
+            Campaign updates will appear here soon.
+          </p>
+        </div>
+      </section>
+    );
   }
 
   return (
