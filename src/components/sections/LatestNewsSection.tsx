@@ -6,10 +6,17 @@ import { formatMediaDate } from "@/lib/formatDate";
 export const revalidate = 60;
 
 export async function LatestNewsSection() {
-  const posts = await prisma.mediaPost.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 3,
-  });
+  let posts: Awaited<ReturnType<typeof prisma.mediaPost.findMany>> = [];
+
+  try {
+    posts = await prisma.mediaPost.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 3,
+    });
+  } catch (error) {
+    console.error("Media posts could not be loaded:", error);
+    posts = [];
+  }
 
   if (posts.length === 0) {
     return null;
