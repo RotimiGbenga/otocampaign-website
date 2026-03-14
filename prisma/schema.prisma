@@ -42,3 +42,13 @@ model MediaPost {
   imageUrl  String?
   createdAt DateTime @default(now())
 }
+
+model CampaignEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  location    String
+  date        DateTime
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+}

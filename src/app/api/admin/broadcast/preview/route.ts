@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { verifyAdminSession } from "@/lib/auth";
 import { buildVolunteerWhereClause } from "@/lib/broadcast-filters";
 
+export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 function parseFilters(searchParams: URLSearchParams): {
