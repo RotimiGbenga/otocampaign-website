@@ -50,8 +50,12 @@ export type VolunteerNotificationData = {
   country?: string;
   state?: string;
   lga?: string;
+  city?: string;
+  supportType?: string[];
+  occupation?: string;
   skills?: string[];
   availability?: string[];
+  contactPermission?: string;
   message?: string;
   createdAt: Date;
 };
@@ -83,16 +87,23 @@ export async function sendVolunteerNotification(
     if (!transporter) return;
 
     const adminEmail = process.env.ADMIN_EMAIL!;
+    const supportType = data.supportType?.length
+      ? escapeHtml(data.supportType.join(", "))
+      : (data.message?.match(/Support Type:\s*([^\n]+)/)?.[1]?.trim() ?? "-");
+    const occupation = data.occupation
+      ? escapeHtml(data.occupation)
+      : (data.message?.match(/Occupation:\s*([^\n]+)/)?.[1]?.trim() ?? "-");
     const skills = data.skills?.length
       ? escapeHtml(data.skills.join(", "))
-      : (data.message?.match(/Skills:\s*([^|]+)/)?.[1]?.trim() ?? "-");
+      : (data.message?.match(/Skills:\s*([^\n]+)/)?.[1]?.trim() ?? "-");
     const availability = data.availability?.length
       ? escapeHtml(data.availability.join(", "))
-      : (data.message?.match(/Availability:\s*([^|]+)/)?.[1]?.trim() ?? "-");
+      : (data.message?.match(/Availability:\s*([^\n]+)/)?.[1]?.trim() ?? "-");
+    const contactPermission = data.contactPermission ?? (data.message?.match(/Contact Permission:\s*([^\n]+)/)?.[1]?.trim() ?? "-");
 
     const html = `
-      <h2>New Volunteer – OTO Campaign</h2>
-      <p>A new supporter has registered as a volunteer.</p>
+      <h2>New Campaign Supporter – OTO Campaign</h2>
+      <p>A new supporter has registered.</p>
       <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse;">
         <tr><td><strong>Full Name</strong></td><td>${escapeHtml(data.fullName)}</td></tr>
         <tr><td><strong>Phone</strong></td><td>${escapeHtml(data.phone)}</td></tr>
@@ -100,7 +111,12 @@ export async function sendVolunteerNotification(
         <tr><td><strong>Country</strong></td><td>${escapeHtml(data.country ?? "-")}</td></tr>
         <tr><td><strong>State</strong></td><td>${escapeHtml(data.state ?? "-")}</td></tr>
         <tr><td><strong>LGA</strong></td><td>${escapeHtml(data.lga ?? "-")}</td></tr>
-        <tr><td><strong>Skills & Availability</strong></td><td>${skills === "-" && availability === "-" ? "-" : `${skills} | ${availability}`}</td></tr>
+        <tr><td><strong>City</strong></td><td>${escapeHtml(data.city ?? "-")}</td></tr>
+        <tr><td><strong>Support Type</strong></td><td>${supportType}</td></tr>
+        <tr><td><strong>Occupation</strong></td><td>${occupation}</td></tr>
+        <tr><td><strong>Skills</strong></td><td>${skills}</td></tr>
+        <tr><td><strong>Availability</strong></td><td>${availability}</td></tr>
+        <tr><td><strong>Contact Permission</strong></td><td>${contactPermission}</td></tr>
         <tr><td><strong>Submission Date</strong></td><td>${formatTimestamp(data.createdAt)}</td></tr>
       </table>
     `;
@@ -108,7 +124,7 @@ export async function sendVolunteerNotification(
     await transporter.sendMail({
       from: process.env.SMTP_FROM ?? adminEmail,
       to: adminEmail,
-      subject: "New Volunteer – OTO Campaign",
+      subject: "New Campaign Supporter – OTO Campaign",
       html,
     });
   } catch (err) {

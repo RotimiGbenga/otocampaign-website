@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "db:seed": "npx tsx prisma/seed.ts",
     "dev": "next dev",
     "build": "prisma generate && next build",
     "prebuild": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\"",

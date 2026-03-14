@@ -1,17 +1,33 @@
 import { z } from "zod";
 
-function buildMessageFromSkillsAvailability(
-  skills: string[],
-  availability: string[]
-): string {
+function buildStructuredMessage(opts: {
+  supportType?: string[];
+  occupation?: string;
+  city?: string;
+  skills?: string[];
+  availability?: string[];
+  contactPermission?: string;
+}): string {
   const parts: string[] = [];
-  if (skills.length > 0) {
-    parts.push(`Skills: ${skills.join(", ")}`);
+  if (opts.supportType?.length) {
+    parts.push(`Support Type: ${opts.supportType.join(", ")}`);
   }
-  if (availability.length > 0) {
-    parts.push(`Availability: ${availability.join(", ")}`);
+  if (opts.occupation?.trim()) {
+    parts.push(`Occupation: ${opts.occupation.trim()}`);
   }
-  return parts.join(" | ") || "";
+  if (opts.city?.trim()) {
+    parts.push(`City: ${opts.city.trim()}`);
+  }
+  if (opts.skills?.length) {
+    parts.push(`Skills: ${opts.skills.join(", ")}`);
+  }
+  if (opts.availability?.length) {
+    parts.push(`Availability: ${opts.availability.join(", ")}`);
+  }
+  if (opts.contactPermission) {
+    parts.push(`Contact Permission: ${opts.contactPermission}`);
+  }
+  return parts.join("\n") || "";
 }
 
 export const volunteerSchema = z.object({
@@ -39,15 +55,23 @@ export const volunteerSchema = z.object({
     .optional()
     .default(""),
   message: z.string().max(2000).optional().default(""),
+  supportType: z.array(z.string()).optional(),
+  occupation: z.string().max(200).optional(),
+  city: z.string().max(100).optional(),
+  contactPermission: z.string().optional(),
   skills: z.array(z.string()).optional(),
   availability: z.array(z.string()).optional(),
 }).transform((data) => {
   const message =
     data.message ||
-    buildMessageFromSkillsAvailability(
-      data.skills ?? [],
-      data.availability ?? []
-    );
+    buildStructuredMessage({
+      supportType: data.supportType,
+      occupation: data.occupation,
+      city: data.city,
+      skills: data.skills,
+      availability: data.availability,
+      contactPermission: data.contactPermission,
+    });
   return {
     fullName: data.fullName,
     email: data.email,

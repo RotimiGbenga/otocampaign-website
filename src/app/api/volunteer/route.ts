@@ -5,20 +5,6 @@ import { sendVolunteerNotification } from "@/lib/email";
 
 export const runtime = "nodejs";
 
-function buildMessageFromCheckboxes(
-  skills: string[],
-  availability: string[]
-): string {
-  const parts: string[] = [];
-  if (skills.length > 0) {
-    parts.push(`Skills: ${skills.join(", ")}`);
-  }
-  if (availability.length > 0) {
-    parts.push(`Availability: ${availability.join(", ")}`);
-  }
-  return parts.join(" | ") || "";
-}
-
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
@@ -29,16 +15,19 @@ export async function POST(req: Request) {
     const country = String(formData.get("country") ?? "").trim();
     const state = String(formData.get("state") ?? "").trim();
     const lga = String(formData.get("lga") ?? "").trim();
+    const city = String(formData.get("city") ?? "").trim();
+    const occupation = String(formData.get("occupation") ?? "").trim();
+    const supportType = formData
+      .getAll("supportType")
+      .filter((v): v is string => typeof v === "string");
     const skills = formData
       .getAll("skills")
       .filter((v): v is string => typeof v === "string");
     const availability = formData
       .getAll("availability")
       .filter((v): v is string => typeof v === "string");
-
-    const message =
-      String(formData.get("message") ?? "").trim() ||
-      buildMessageFromCheckboxes(skills, availability);
+    const contactPermission = String(formData.get("contactPermission") ?? "").trim();
+    const message = String(formData.get("message") ?? "").trim();
 
     const parsed = volunteerSchema.safeParse({
       fullName,
@@ -47,9 +36,13 @@ export async function POST(req: Request) {
       country,
       state,
       lga: lga || "",
-      message,
+      city: city || undefined,
+      occupation: occupation || undefined,
+      message: message || undefined,
+      supportType,
       skills,
       availability,
+      contactPermission: contactPermission || undefined,
     });
 
     if (!parsed.success) {
@@ -83,8 +76,11 @@ export async function POST(req: Request) {
       country: volunteer.country ?? undefined,
       state: volunteer.state ?? undefined,
       lga: volunteer.lga ?? undefined,
+      supportType: supportType.length ? supportType : undefined,
+      occupation: occupation || undefined,
       skills: skills.length ? skills : undefined,
       availability: availability.length ? availability : undefined,
+      contactPermission: contactPermission || undefined,
       message: volunteer.message ?? undefined,
       createdAt: volunteer.createdAt,
     }).catch((err: unknown) => {

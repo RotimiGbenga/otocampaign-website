@@ -52,33 +52,30 @@ const NIGERIAN_STATES = [
   { value: "Zamfara", label: "Zamfara" },
 ] as const;
 
-const VOLUNTEER_SKILLS = [
-  "Canvassing (Door-to-door)",
-  "Phone Banking (to raise funds)",
-  "Campaign Planning & Support",
-  "Social Media Advocacy",
-  "Data Entry/Collection",
-  "Transportation / Driving",
-  "Security",
-  "Donate",
+const SUPPORT_TYPES = [
+  { value: "Volunteer", label: "Volunteer (Door-to-door outreach)" },
+  { value: "Donate", label: "Donate / Financial Support" },
+  { value: "Media", label: "Social Media Advocacy" },
+  { value: "Mobilizer", label: "Community Mobilization" },
+  { value: "Events", label: "Event Organization & Support" },
 ] as const;
 
-const VOLUNTEER_SKILL_LABELS: Record<string, string> = {
-  "Donate": "Donate / Financial Support",
-  "Canvassing (Door-to-door)": "Canvassing (Door-to-door)",
-  "Phone Banking (to raise funds)": "Phone Banking (to raise funds)",
-  "Campaign Planning & Support": "Campaign Planning & Support",
-  "Social Media Advocacy": "Social Media Advocacy",
-  "Data Entry/Collection": "Data Entry/Collection",
-  "Transportation / Driving": "Transportation / Driving",
-  "Security": "Security",
-};
+const VOLUNTEER_SKILLS = [
+  "Canvassing (Door-to-door)",
+  "Phone Banking",
+  "Campaign Planning",
+  "Social Media Advocacy",
+  "Data Collection",
+  "Transportation / Driving",
+  "Security",
+  "Donate / Financial Support",
+] as const;
 
 const VOLUNTEER_AVAILABILITY = [
-  "Weekday Mornings",
-  "Weekday Afternoons",
-  "Weekday Evenings",
-  "Weekends",
+  "Weekday Morning",
+  "Weekday Afternoon",
+  "Weekday Evening",
+  "Weekend",
 ] as const;
 
 export default function VolunteerForm() {
@@ -151,64 +148,112 @@ export default function VolunteerForm() {
         className="w-full p-3 border rounded"
       />
 
-      {/* COUNTRY */}
-      <select
-        name="country"
-        value={country}
-        onChange={(e) => setCountry(e.target.value)}
-        required
+      {/* HOW WOULD YOU LIKE TO SUPPORT */}
+      <fieldset className="space-y-2 p-4 border rounded bg-gray-50">
+        <legend className="text-sm font-semibold text-campaign-green-800 px-1">
+          How would you like to support the campaign?
+        </legend>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {SUPPORT_TYPES.map(({ value, label }) => (
+            <label
+              key={value}
+              className="flex items-center gap-2 cursor-pointer hover:text-campaign-green-700"
+            >
+              <input
+                type="checkbox"
+                name="supportType"
+                value={value}
+                className="rounded border-gray-300 text-campaign-green-600 focus:ring-campaign-green-500"
+              />
+              <span className="text-sm">{label}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      {/* LOCATION SECTION */}
+      <fieldset className="space-y-4 p-4 border rounded bg-gray-50">
+        <legend className="text-sm font-semibold text-campaign-green-800 px-1">
+          Location
+        </legend>
+
+        {/* COUNTRY */}
+        <select
+          name="country"
+          value={country}
+          onChange={(e) => setCountry(e.target.value)}
+          required
+          className="w-full p-3 border rounded bg-white"
+        >
+          <option value="Nigeria">Nigeria</option>
+          <option value="United Kingdom">United Kingdom</option>
+          <option value="United States">United States</option>
+          <option value="Canada">Canada</option>
+          <option value="South Africa">South Africa</option>
+          <option value="Other">Other</option>
+        </select>
+
+        {/* STATE - Dropdown for Nigeria, free text for international */}
+        {country === "Nigeria" ? (
+          <select
+            name="state"
+            value={stateValue}
+            onChange={(e) => setStateValue(e.target.value)}
+            required
+            className="w-full p-3 border rounded bg-white"
+          >
+            <option value="">Select State</option>
+            {NIGERIAN_STATES.map((s) => (
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <input
+            type="text"
+            name="state"
+            placeholder="State / Province / Region"
+            required
+            className="w-full p-3 border rounded bg-white"
+          />
+        )}
+
+        {/* LGA - Only for Nigeria + Ogun State */}
+        {country === "Nigeria" && stateValue === "Ogun" && (
+          <select
+            name="lga"
+            required
+            className="w-full p-3 border rounded bg-white"
+            defaultValue=""
+          >
+            <option value="">Select Your LGA (Ogun State)</option>
+            {OGUN_STATE_LGAS.map((lga) => (
+              <option key={lga} value={lga}>
+                {lga}
+              </option>
+            ))}
+          </select>
+        )}
+
+        {/* CITY - For international supporters */}
+        {country !== "Nigeria" && (
+          <input
+            type="text"
+            name="city"
+            placeholder="City"
+            className="w-full p-3 border rounded bg-white"
+          />
+        )}
+      </fieldset>
+
+      {/* OCCUPATION */}
+      <input
+        type="text"
+        name="occupation"
+        placeholder="Occupation / Profession"
         className="w-full p-3 border rounded"
-      >
-        <option value="Nigeria">Nigeria</option>
-        <option value="United Kingdom">United Kingdom</option>
-        <option value="United States">United States</option>
-        <option value="Canada">Canada</option>
-        <option value="South Africa">South Africa</option>
-        <option value="Other">Other</option>
-      </select>
-
-      {/* STATE - Dropdown for Nigeria, free text for international */}
-      {country === "Nigeria" ? (
-        <select
-          name="state"
-          value={stateValue}
-          onChange={(e) => setStateValue(e.target.value)}
-          required
-          className="w-full p-3 border rounded"
-        >
-          <option value="">Select State</option>
-          {NIGERIAN_STATES.map((s) => (
-            <option key={s.value} value={s.value}>
-              {s.label}
-            </option>
-          ))}
-        </select>
-      ) : (
-        <input
-          type="text"
-          name="state"
-          placeholder="State / Province / Region"
-          required
-          className="w-full p-3 border rounded"
-        />
-      )}
-
-      {/* LGA - Only for Nigeria + Ogun State */}
-      {country === "Nigeria" && stateValue === "Ogun" && (
-        <select
-          name="lga"
-          required
-          className="w-full p-3 border rounded"
-          defaultValue=""
-        >
-          <option value="">Select Your LGA (Ogun State)</option>
-          {OGUN_STATE_LGAS.map((lga) => (
-            <option key={lga} value={lga}>
-              {lga}
-            </option>
-          ))}
-        </select>
-      )}
+      />
 
       {/* SKILLS */}
       <fieldset className="space-y-2 p-4 border rounded bg-gray-50">
@@ -227,9 +272,7 @@ export default function VolunteerForm() {
                 value={skill}
                 className="rounded border-gray-300 text-campaign-green-600 focus:ring-campaign-green-500"
               />
-              <span className="text-sm">
-                {VOLUNTEER_SKILL_LABELS[skill] ?? skill}
-              </span>
+              <span className="text-sm">{skill}</span>
             </label>
           ))}
         </div>
@@ -257,6 +300,19 @@ export default function VolunteerForm() {
           ))}
         </div>
       </fieldset>
+
+      {/* CONTACT PERMISSION */}
+      <label className="flex items-center gap-2 cursor-pointer p-4 border rounded bg-gray-50 hover:bg-gray-100">
+        <input
+          type="checkbox"
+          name="contactPermission"
+          value="yes"
+          className="rounded border-gray-300 text-campaign-green-600 focus:ring-campaign-green-500"
+        />
+        <span className="text-sm font-medium text-campaign-green-800">
+          I agree to be contacted by the campaign team.
+        </span>
+      </label>
 
       <button
         type="submit"

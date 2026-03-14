@@ -33,3 +33,12 @@ model Contact {
   message   String
   createdAt DateTime @default(now())
 }
+
+model MediaPost {
+  id        String   @id @default(cuid())
+  title     String
+  summary   String
+  content   String
+  imageUrl  String?
+  createdAt DateTime @default(now())
+}

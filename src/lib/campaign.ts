@@ -46,6 +46,7 @@ export const OGUN_STATE_LGAS = [
 export const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
+  { href: "/media", label: "Media & News" },
   { href: "/get-involved", label: "Get Involved" },
   { href: "/contact", label: "Contact" },
 ] as const;
