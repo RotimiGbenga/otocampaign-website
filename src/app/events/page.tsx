@@ -10,14 +10,20 @@ export const metadata: Metadata = {
     "Upcoming campaign events, rallies, town halls, and community engagements.",
 };
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function EventsPage() {
-  const now = new Date();
-  const events = await prisma.campaignEvent.findMany({
-    where: { date: { gte: now } },
-    orderBy: { date: "asc" },
-  });
+  let events: Awaited<ReturnType<typeof prisma.campaignEvent.findMany>> = [];
+
+  try {
+    const now = new Date();
+    events = await prisma.campaignEvent.findMany({
+      where: { date: { gte: now } },
+      orderBy: { date: "asc" },
+    });
+  } catch (error) {
+    console.error("Failed to load campaign events:", error);
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-16 px-6">
