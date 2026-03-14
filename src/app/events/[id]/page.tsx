@@ -2,10 +2,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { safeQuery } from "@/lib/safeDb";
 import { formatEventDate } from "@/lib/formatDate";
 import type { Metadata } from "next";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -15,7 +16,10 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const event = await prisma.campaignEvent.findUnique({ where: { id } });
+  const event = await safeQuery(
+    () => prisma.campaignEvent.findUnique({ where: { id } }),
+    null
+  );
   if (!event) return { title: "Event Not Found" };
   return {
     title: `${event.title} | Ogun State 2027 Campaign`,
@@ -26,9 +30,10 @@ export async function generateMetadata({
 export default async function EventDetailPage({ params }: PageProps) {
   const { id } = await params;
 
-  const event = await prisma.campaignEvent.findUnique({
-    where: { id },
-  });
+  const event = await safeQuery(
+    () => prisma.campaignEvent.findUnique({ where: { id } }),
+    null
+  );
 
   if (!event) {
     notFound();

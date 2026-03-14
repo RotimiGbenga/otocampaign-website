@@ -4,6 +4,7 @@ import { contactSchema } from "@/lib/validations";
 import { sendContactNotification } from "@/lib/email";
 import type { ContactResponse } from "@/lib/types/api";
 
+export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function POST(

@@ -2,6 +2,11 @@ import "server-only";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
+/**
+ * Prisma singleton pattern for Next.js.
+ * Reuses a single PrismaClient instance across hot reloads and serverless invocations
+ * to prevent exhausting database connections.
+ */
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };

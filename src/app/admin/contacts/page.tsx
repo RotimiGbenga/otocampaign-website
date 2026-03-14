@@ -1,6 +1,7 @@
 import { unstable_noStore } from "next/cache";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { safeQuery } from "@/lib/safeDb";
 import { ExportButton } from "@/components/admin/ExportButton";
 
 export const dynamic = "force-dynamic";
@@ -18,29 +19,18 @@ export default async function AdminContactsPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const pageNum = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
 
-  let contacts: Awaited<ReturnType<typeof prisma.contact.findMany>> = [];
-  let total = 0;
-
-  try {
-    const [items, countResult] = await Promise.all([
-      prisma.contact.findMany({
-        orderBy: { createdAt: "desc" },
-        skip: (pageNum - 1) * PAGE_SIZE,
-        take: PAGE_SIZE,
-      }),
-      prisma.contact.count(),
-    ]);
-
-    contacts = items;
-    total = countResult;
-  } catch (err: unknown) {
-    const code =
-      err && typeof err === "object" && "code" in err
-        ? (err as { code?: string }).code
-        : undefined;
-    const message = err instanceof Error ? err.message : String(err);
-    console.error("[ADMIN] Contacts page DB error:", { code, message, err });
-  }
+  const [contacts, total] = await safeQuery(
+    () =>
+      Promise.all([
+        prisma.contact.findMany({
+          orderBy: { createdAt: "desc" },
+          skip: (pageNum - 1) * PAGE_SIZE,
+          take: PAGE_SIZE,
+        }),
+        prisma.contact.count(),
+      ]),
+    [[], 0] as [Awaited<ReturnType<typeof prisma.contact.findMany>>, number]
+  );
 
   const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
   const hasPrev = pageNum > 1;

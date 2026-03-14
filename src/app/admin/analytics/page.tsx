@@ -1,5 +1,6 @@
 import { unstable_noStore } from "next/cache";
 import { prisma } from "@/lib/db";
+import { safeQuery } from "@/lib/safeDb";
 import { AnalyticsCharts } from "./AnalyticsCharts";
 
 export const dynamic = "force-dynamic";
@@ -97,56 +98,66 @@ function parseSkillsAndAvailability(
 export default async function AdminAnalyticsPage() {
   unstable_noStore();
 
-  let volunteersByLga: { lga: string; count: number }[] = [];
-  let skillsData: { name: string; value: number }[] = [];
-  let availabilityData: { name: string; value: number }[] = [];
-  let growthData: { date: string; count: number; displayDate: string }[] = [];
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  thirtyDaysAgo.setHours(0, 0, 0, 0);
 
-  try {
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    thirtyDaysAgo.setHours(0, 0, 0, 0);
+  const fallback = {
+    volunteersByLga: [] as { lga: string; count: number }[],
+    skillsData: [] as { name: string; value: number }[],
+    availabilityData: [] as { name: string; value: number }[],
+    growthData: [] as { date: string; count: number; displayDate: string }[],
+  };
 
-    const [lgaStats, volunteers, recentVolunteers] = await Promise.all([
-      prisma.volunteer.groupBy({
-        by: ["lga"],
-        _count: { id: true },
-        orderBy: { _count: { id: "desc" } },
-      }),
-      prisma.volunteer.findMany({
-        select: { message: true },
-      }),
-      prisma.volunteer.findMany({
-        where: { createdAt: { gte: thirtyDaysAgo } },
-        select: { createdAt: true },
-      }),
-    ]);
+  const result = await safeQuery(
+    async () => {
+      const [lgaStats, volunteers, recentVolunteers] = await Promise.all([
+        prisma.volunteer.groupBy({
+          by: ["lga"],
+          _count: { id: true },
+          orderBy: { _count: { id: "desc" } },
+        }),
+        prisma.volunteer.findMany({ select: { message: true } }),
+        prisma.volunteer.findMany({
+          where: { createdAt: { gte: thirtyDaysAgo } },
+          select: { createdAt: true },
+        }),
+      ]);
 
-    volunteersByLga = lgaStats.map((s) => ({
-      lga: s.lga,
-      count: s._count.id,
-    }));
+      const volunteersByLga = lgaStats.map((s) => ({
+        lga: s.lga ?? "",
+        count: s._count.id,
+      }));
 
-    const { skills, availability } = parseSkillsAndAvailability(volunteers);
+      const { skills, availability } = parseSkillsAndAvailability(volunteers);
 
-    skillsData = Object.entries(skills)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 12);
+      const skillsData = Object.entries(skills)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 12);
 
-    availabilityData = Object.entries(availability)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
+      const availabilityData = Object.entries(availability)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value);
 
-    growthData = buildGrowthTrendData(recentVolunteers, 30);
-  } catch (err: unknown) {
-    const code =
-      err && typeof err === "object" && "code" in err
-        ? (err as { code?: string }).code
-        : undefined;
-    const message = err instanceof Error ? err.message : String(err);
-    console.error("[ADMIN] Analytics DB error:", { code, message, err });
-  }
+      const growthData = buildGrowthTrendData(recentVolunteers, 30);
+
+      return {
+        volunteersByLga,
+        skillsData,
+        availabilityData,
+        growthData,
+      };
+    },
+    fallback
+  );
+
+  const {
+    volunteersByLga,
+    skillsData,
+    availabilityData,
+    growthData,
+  } = result;
 
   return (
     <div className="p-6 lg:p-10 max-w-7xl mx-auto">

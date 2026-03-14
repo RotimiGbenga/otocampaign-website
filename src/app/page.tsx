@@ -7,31 +7,23 @@ import {
 } from "@/components/sections";
 import { getLatestMediaPosts } from "@/lib/mediaCache";
 import { prisma } from "@/lib/db";
+import { safeQuery } from "@/lib/safeDb";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  let posts: Awaited<ReturnType<typeof getLatestMediaPosts>> = [];
-  let events: Awaited<ReturnType<typeof prisma.campaignEvent.findMany>> = [];
+  const posts = await safeQuery(() => getLatestMediaPosts(), []);
 
-  try {
-    posts = await getLatestMediaPosts();
-  } catch (error) {
-    console.error("Media posts could not be loaded:", error);
-    posts = [];
-  }
-
-  try {
-    const now = new Date();
-    events = await prisma.campaignEvent.findMany({
-      where: { date: { gte: now } },
-      orderBy: { date: "asc" },
-      take: 2,
-    });
-  } catch (error) {
-    console.error("Events could not be loaded:", error);
-    events = [];
-  }
+  const now = new Date();
+  const events = await safeQuery(
+    () =>
+      prisma.campaignEvent.findMany({
+        where: { date: { gte: now } },
+        orderBy: { date: "asc" },
+        take: 2,
+      }),
+    []
+  );
 
   return (
     <div className="overflow-x-hidden">

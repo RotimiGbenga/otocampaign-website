@@ -4,6 +4,7 @@ import { verifyAdminSession } from "@/lib/auth";
 import { buildVolunteerWhereClause } from "@/lib/broadcast-filters";
 import { sendBulkBroadcastEmail } from "@/lib/email";
 
+export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 function parseBody(body: unknown): {

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { volunteerSchema } from "@/lib/validations";
 import { sendVolunteerNotification } from "@/lib/email";
 
+export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {

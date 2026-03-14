@@ -2,6 +2,7 @@ import { unstable_noStore } from "next/cache";
 import Link from "next/link";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import { safeQuery } from "@/lib/safeDb";
 import { OGUN_STATE_LGAS } from "@/lib/campaign";
 import { Suspense } from "react";
 import { VolunteersFilters } from "./VolunteersFilters";
@@ -24,44 +25,31 @@ export default async function AdminVolunteersPage({ searchParams }: PageProps) {
   const lgaFilter = (params.lga ?? "").trim();
   const pageNum = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
 
-  let volunteers: Awaited<ReturnType<typeof prisma.volunteer.findMany>> = [];
-  let total = 0;
-
-  try {
-    const where: Prisma.VolunteerWhereInput = {};
-
-    if (search) {
-      where.OR = [
-        { fullName: { contains: search, mode: "insensitive" } },
-        { phone: { contains: search, mode: "insensitive" } },
-        { email: { contains: search, mode: "insensitive" } },
-      ];
-    }
-
-    if (lgaFilter) {
-      where.lga = lgaFilter;
-    }
-
-    const [items, countResult] = await Promise.all([
-      prisma.volunteer.findMany({
-        where,
-        orderBy: { createdAt: "desc" },
-        skip: (pageNum - 1) * PAGE_SIZE,
-        take: PAGE_SIZE,
-      }),
-      prisma.volunteer.count({ where }),
-    ]);
-
-    volunteers = items;
-    total = countResult;
-  } catch (err: unknown) {
-    const code =
-      err && typeof err === "object" && "code" in err
-        ? (err as { code?: string }).code
-        : undefined;
-    const message = err instanceof Error ? err.message : String(err);
-    console.error("[ADMIN] Volunteers page DB error:", { code, message, err });
+  const where: Prisma.VolunteerWhereInput = {};
+  if (search) {
+    where.OR = [
+      { fullName: { contains: search, mode: "insensitive" } },
+      { phone: { contains: search, mode: "insensitive" } },
+      { email: { contains: search, mode: "insensitive" } },
+    ];
   }
+  if (lgaFilter) {
+    where.lga = lgaFilter;
+  }
+
+  const [volunteers, total] = await safeQuery(
+    () =>
+      Promise.all([
+        prisma.volunteer.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          skip: (pageNum - 1) * PAGE_SIZE,
+          take: PAGE_SIZE,
+        }),
+        prisma.volunteer.count({ where }),
+      ]),
+    [[], 0] as [Awaited<ReturnType<typeof prisma.volunteer.findMany>>, number]
+  );
 
   const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
   const hasPrev = pageNum > 1;

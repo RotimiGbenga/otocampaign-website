@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/db";
+import { safeQuery } from "@/lib/safeDb";
 import { formatEventDateShort } from "@/lib/formatDate";
 import type { Metadata } from "next";
 
@@ -13,24 +14,22 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function EventsPage() {
-  let events: Awaited<ReturnType<typeof prisma.campaignEvent.findMany>> = [];
-
-  try {
-    const now = new Date();
-    events = await prisma.campaignEvent.findMany({
-      where: { date: { gte: now } },
-      orderBy: { date: "asc" },
-    });
-  } catch (error) {
-    console.error("Failed to load campaign events:", error);
-  }
+  const now = new Date();
+  const events = await safeQuery(
+    () =>
+      prisma.campaignEvent.findMany({
+        where: { date: { gte: now } },
+        orderBy: { date: "asc" },
+      }),
+    []
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-16 px-6">
-      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <header className="mb-12 text-center">
-          <h1 className="section-title mb-4">Campaign Events</h1>
-          <p className="section-subtitle mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        <header className="mb-10">
+          <h1 className="section-title mb-2">Upcoming Campaign Events</h1>
+          <p className="text-gray-600">
             Join us at rallies, town halls, and community engagements across
             Ogun State.
           </p>
@@ -49,7 +48,7 @@ export default async function EventsPage() {
             </Link>
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {events.map((event) => (
               <article
                 key={event.id}
@@ -63,7 +62,7 @@ export default async function EventsPage() {
                         alt={event.title}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        sizes="(max-width: 768px) 100vw, 50vw"
                       />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center bg-campaign-green-100">
@@ -77,15 +76,12 @@ export default async function EventsPage() {
                     <h2 className="card-title mb-2 line-clamp-2 group-hover:text-campaign-green-700">
                       {event.title}
                     </h2>
-                    <p className="text-sm text-gray-600 mb-2">
+                    <p className="text-sm text-gray-500 mb-1">
+                      📅 {formatEventDateShort(event.date)}
+                    </p>
+                    <p className="text-sm text-gray-600">
                       📍 {event.location}
                     </p>
-                    <p className="text-sm text-gray-500 mb-4">
-                      {formatEventDateShort(event.date)}
-                    </p>
-                    <span className="inline-flex items-center gap-1 text-campaign-green-600 font-semibold text-sm group-hover:gap-2 transition-all">
-                      View Details →
-                    </span>
                   </div>
                 </Link>
               </article>

@@ -2,10 +2,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { safeQuery } from "@/lib/safeDb";
 import { formatMediaDate } from "@/lib/formatDate";
 import type { Metadata } from "next";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -15,7 +16,10 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const post = await prisma.mediaPost.findUnique({ where: { id } });
+  const post = await safeQuery(
+    () => prisma.mediaPost.findUnique({ where: { id } }),
+    null
+  );
   if (!post) return { title: "Post Not Found" };
   return {
     title: `${post.title} | Ogun State 2027 Campaign`,
@@ -26,9 +30,10 @@ export async function generateMetadata({
 export default async function MediaDetailPage({ params }: PageProps) {
   const { id } = await params;
 
-  const post = await prisma.mediaPost.findUnique({
-    where: { id },
-  });
+  const post = await safeQuery(
+    () => prisma.mediaPost.findUnique({ where: { id } }),
+    null
+  );
 
   if (!post) {
     notFound();

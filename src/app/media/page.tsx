@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/db";
-import { formatMediaDate } from "@/lib/formatDate";
+import { safeQuery } from "@/lib/safeDb";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -12,24 +12,21 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function MediaPage() {
-  let posts: Awaited<ReturnType<typeof prisma.mediaPost.findMany>> = [];
-
-  try {
-    posts = await prisma.mediaPost.findMany({
-      orderBy: { createdAt: "desc" },
-    });
-  } catch (error) {
-    console.error("Failed to load media posts:", error);
-  }
+  const posts = await safeQuery(
+    () =>
+      prisma.mediaPost.findMany({
+        orderBy: { createdAt: "desc" },
+      }),
+    []
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-16 px-6">
-      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <header className="mb-12 text-center">
-          <h1 className="section-title mb-4">Campaign News & Updates</h1>
-          <p className="section-subtitle mx-auto">
-            Stay informed with the latest announcements, press releases, and
-            campaign updates.
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        <header className="mb-10">
+          <h1 className="section-title mb-2">Campaign News</h1>
+          <p className="text-gray-600">
+            Stay informed with the latest announcements and press releases.
           </p>
         </header>
 
@@ -40,13 +37,13 @@ export default async function MediaPage() {
             </p>
           </div>
         ) : (
-          <div className={`grid gap-6 sm:gap-8 ${posts.length >= 3 ? "sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1 sm:grid-cols-2"}`}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {posts.map((post) => (
               <article
                 key={post.id}
-                className="group bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg transition-shadow"
+                className="group bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg transition-shadow flex flex-col"
               >
-                <Link href={`/media/${post.id}`} className="block">
+                <Link href={`/media/${post.id}`} className="flex flex-col flex-1">
                   <div className="aspect-video bg-gray-200 relative overflow-hidden">
                     {post.imageUrl ? (
                       <Image
@@ -54,7 +51,7 @@ export default async function MediaPage() {
                         alt={post.title}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        sizes="(max-width: 640px) 100vw, 50vw"
+                        sizes="(max-width: 768px) 100vw, 50vw"
                       />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center bg-campaign-green-100">
@@ -64,17 +61,14 @@ export default async function MediaPage() {
                       </div>
                     )}
                   </div>
-                  <div className="p-6">
+                  <div className="p-6 flex flex-col flex-1">
                     <h2 className="card-title mb-2 line-clamp-2 group-hover:text-campaign-green-700">
                       {post.title}
                     </h2>
-                    <p className="text-gray-600 text-sm line-clamp-3 mb-4">
+                    <p className="text-gray-600 text-sm line-clamp-3 mb-4 flex-1">
                       {post.summary}
                     </p>
-                    <p className="text-sm text-gray-500">
-                      {formatMediaDate(post.createdAt)}
-                    </p>
-                    <span className="inline-flex items-center gap-1 text-campaign-green-600 font-semibold text-sm mt-2 group-hover:gap-2 transition-all">
+                    <span className="inline-flex items-center justify-center gap-1 w-fit px-4 py-2 text-sm font-semibold text-campaign-green-700 bg-campaign-green-50 rounded-lg border border-campaign-green-200 group-hover:bg-campaign-green-100 group-hover:gap-2 transition-all">
                       Read More →
                     </span>
                   </div>

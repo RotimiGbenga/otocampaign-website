@@ -1,6 +1,7 @@
 import { unstable_noStore } from "next/cache";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { safeQuery } from "@/lib/safeDb";
 import { ExportButton } from "@/components/admin/ExportButton";
 
 export const dynamic = "force-dynamic";
@@ -9,51 +10,55 @@ export const runtime = "nodejs";
 export default async function AdminPage() {
   unstable_noStore();
 
-  let totalVolunteers = 0;
-  let totalContacts = 0;
-  let volunteersLast7Days = 0;
-  let volunteersByLga: { lga: string; _count: number }[] = [];
-  let recentVolunteers: Awaited<ReturnType<typeof prisma.volunteer.findMany>> =
-    [];
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-  try {
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const result = await safeQuery(
+    async () => {
+      const [volCount, contactCount, last7Count, lgaStats, recent] =
+        await Promise.all([
+          prisma.volunteer.count(),
+          prisma.contact.count(),
+          prisma.volunteer.count({
+            where: { createdAt: { gte: sevenDaysAgo } },
+          }),
+          prisma.volunteer.groupBy({
+            by: ["lga"],
+            _count: { id: true },
+            orderBy: { _count: { id: "desc" } },
+          }),
+          prisma.volunteer.findMany({
+            orderBy: { createdAt: "desc" },
+            take: 10,
+          }),
+        ]);
+      return {
+        totalVolunteers: volCount,
+        totalContacts: contactCount,
+        volunteersLast7Days: last7Count,
+        volunteersByLga: lgaStats.map((s) => ({
+          lga: s.lga ?? "",
+          _count: s._count.id,
+        })),
+        recentVolunteers: recent,
+      };
+    },
+    {
+      totalVolunteers: 0,
+      totalContacts: 0,
+      volunteersLast7Days: 0,
+      volunteersByLga: [] as { lga: string; _count: number }[],
+      recentVolunteers: [] as Awaited<ReturnType<typeof prisma.volunteer.findMany>>,
+    }
+  );
 
-    const [volCount, contactCount, last7Count, lgaStats, recent] =
-      await Promise.all([
-        prisma.volunteer.count(),
-        prisma.contact.count(),
-        prisma.volunteer.count({
-          where: { createdAt: { gte: sevenDaysAgo } },
-        }),
-        prisma.volunteer.groupBy({
-          by: ["lga"],
-          _count: { id: true },
-          orderBy: { _count: { id: "desc" } },
-        }),
-        prisma.volunteer.findMany({
-          orderBy: { createdAt: "desc" },
-          take: 10,
-        }),
-      ]);
-
-    totalVolunteers = volCount;
-    totalContacts = contactCount;
-    volunteersLast7Days = last7Count;
-    volunteersByLga = lgaStats.map((s) => ({
-      lga: s.lga,
-      _count: s._count.id,
-    }));
-    recentVolunteers = recent;
-  } catch (err: unknown) {
-    const code =
-      err && typeof err === "object" && "code" in err
-        ? (err as { code?: string }).code
-        : undefined;
-    const message = err instanceof Error ? err.message : String(err);
-    console.error("[ADMIN] Dashboard DB error:", { code, message, err });
-  }
+  const {
+    totalVolunteers,
+    totalContacts,
+    volunteersLast7Days,
+    volunteersByLga,
+    recentVolunteers,
+  } = result;
 
   return (
     <div className="p-6 lg:p-10 max-w-7xl mx-auto">
