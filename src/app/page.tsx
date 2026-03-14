@@ -4,20 +4,17 @@ import {
   LatestNewsSection,
   CTASection,
 } from "@/components/sections";
-import { prisma } from "@/lib/db";
+import { getLatestMediaPosts } from "@/lib/mediaCache";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  let posts: Awaited<ReturnType<typeof prisma.mediaPost.findMany>> = [];
+  let posts: Awaited<ReturnType<typeof getLatestMediaPosts>> = [];
 
   try {
-    posts = await prisma.mediaPost.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 3,
-    });
+    posts = await getLatestMediaPosts();
   } catch (error) {
-    console.error("Failed to load media posts:", error);
+    console.error("Media posts could not be loaded:", error);
     posts = [];
   }
 
