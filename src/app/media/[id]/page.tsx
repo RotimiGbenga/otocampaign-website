@@ -40,46 +40,57 @@ export default async function MediaDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-16 px-6">
-      <article className="mx-auto max-w-3xl">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-3xl mx-auto py-10 px-6">
         <Link
           href="/media"
-          className="inline-flex items-center gap-1 text-campaign-green-600 hover:text-campaign-green-700 font-medium mb-8"
+          className="inline-flex items-center gap-1 text-campaign-green-600 hover:text-campaign-green-700 font-medium mb-6"
         >
           ← Back to Media & News
         </Link>
 
-        <h1 className="text-3xl md:text-4xl font-bold text-green-800 mb-6">
-          {post.title}
-        </h1>
-
-        <p className="text-gray-500 text-sm mb-8">
-          Published: {formatMediaDate(post.createdAt)}
-        </p>
-
-        {post.imageUrl && (
-          <div className="aspect-video relative rounded-xl overflow-hidden mb-8 bg-gray-200">
-            <Image
-              src={post.imageUrl}
-              alt={post.title}
-              fill
-              className="object-cover"
-              priority
-              sizes="(max-width: 768px) 100vw, 672px"
-            />
-          </div>
-        )}
-
-        <div
-          className="prose max-w-3xl mx-auto leading-relaxed text-gray-800
-            prose-p:text-gray-700 prose-p:leading-relaxed
-            prose-headings:text-campaign-green-900
-            prose-a:text-campaign-green-600 prose-a:no-underline hover:prose-a:underline
-            prose-strong:text-campaign-green-900
-            prose-ul:list-disc prose-ul:pl-6 prose-ul:space-y-2"
-          dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
+        <Image
+          src="/images/campaign-banner.jpeg"
+          alt="Otunba Tunji Oredipe Campaign"
+          width={900}
+          height={500}
+          className="rounded-lg mb-8"
+          priority
         />
-      </article>
+
+        <article>
+          <h1 className="text-4xl font-bold text-green-800 mb-6">
+            {post.title}
+          </h1>
+
+          <p className="text-gray-500 text-sm mb-8">
+            Published: {formatMediaDate(post.createdAt)}
+          </p>
+
+          {post.imageUrl && (
+            <div className="aspect-video relative rounded-xl overflow-hidden mb-8 bg-gray-200">
+              <Image
+                src={post.imageUrl}
+                alt={post.title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 672px"
+              />
+            </div>
+          )}
+
+          <div
+            className="prose max-w-none leading-relaxed text-gray-800
+              prose-p:mb-4 prose-p:leading-relaxed prose-p:text-gray-800
+              prose-h2:text-2xl prose-h2:font-semibold prose-h2:mt-8 prose-h2:mb-4 prose-h2:text-green-700
+              prose-blockquote:border-l-4 prose-blockquote:border-green-700 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:my-6 prose-blockquote:text-gray-700
+              prose-a:text-campaign-green-600 prose-a:no-underline hover:prose-a:underline
+              prose-strong:text-campaign-green-900
+              prose-ul:list-disc prose-ul:pl-6 prose-ul:space-y-2 prose-ul:my-6"
+            dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
+          />
+        </article>
+      </div>
     </div>
   );
 }
@@ -208,15 +219,34 @@ function formatContent(content: string): string {
       )
     ) {
       parts.push(
-        `<h3 class="text-xl font-semibold mt-6 mb-2">${escapeHtml(trimmed)}</h3>`
+        `<h3 class="text-xl font-semibold mt-6 mb-2 text-green-700">${escapeHtml(trimmed)}</h3>`
       );
+      i++;
+      continue;
+    }
+
+    // Quote block: lines starting with ", smart quotes, or > (markdown blockquote)
+    const isQuoted =
+      /^["\u201C\u2018]/.test(trimmed) ||
+      trimmed.startsWith(">") ||
+      lines.every((l) => l.trim().startsWith(">"));
+    if (isQuoted) {
+      const quoteText = lines
+        .map((l) => l.replace(/^[">]\s*/, "").replace(/^["\u201C\u2018]|["\u201D\u2019]$/g, "").trim())
+        .filter(Boolean)
+        .join(" ");
+      if (quoteText) {
+        parts.push(
+          `<blockquote class="border-l-4 border-green-700 pl-4 italic my-6 text-gray-700">${escapeHtml(quoteText)}</blockquote>`
+        );
+      }
       i++;
       continue;
     }
 
     // Regular paragraph
     parts.push(
-      `<p class="mb-4">${escapeHtml(trimmed.replace(/\n/g, "<br />"))}</p>`
+      `<p class="mb-4 leading-relaxed text-gray-800">${escapeHtml(trimmed.replace(/\n/g, "<br />"))}</p>`
     );
     i++;
   }
