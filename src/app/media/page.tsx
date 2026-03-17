@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function MediaPage() {
+  console.log("Fetching media posts from database");
   const posts = await safeQuery(
     () =>
       prisma.mediaPost.findMany({
@@ -19,6 +20,7 @@ export default async function MediaPage() {
       }),
     []
   );
+  console.log("Media posts count:", posts.length);
 
   return (
     <div className="min-h-screen bg-gray-50">
